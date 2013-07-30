@@ -592,7 +592,11 @@ python_hotkey()
 	hotkey , $~= , off
 	Input, OutPutVar, L1, {LControl}{RControl}{LAlt}{RAlt}{Left}{Right}{Up}{Down}{BS}
 	if(OutPutVar = "")
+	{
+		hotkey , $~= , on
 		return
+	}
+		
 	If (OutPutVar <> "=")
 	{
 			Send,{left}{Space}{right}{Space}%OutPutVar%
@@ -612,7 +616,11 @@ python_lt()
 	hotkey , $~> , off
 	Input,OutPutVar,L1,{LControl}{RControl}{LAlt}{RAlt}{Left}{Right}{Up}{Down}{BS}
 	if(OutPutVar = "")
-		return
+	{
+		hotkey , $~= , on
+		hotkey , $~> , on
+		Return
+	}
 	If (OutPutVar <> "=" && OutPutVar <> ">")
 	{
 			Send,{left}{Space}{right}{Space}%OutPutVar%
@@ -634,7 +642,10 @@ python_unequal()
 	hotkey , $~= , off
 	Input, OutPutVar, L1, {LControl}{RControl}{LAlt}{RAlt}{Left}{Right}{Up}{Down}{BS}
 	if(OutPutVar = "")
-		return
+	{
+		hotkey , $~= , on
+		Return
+	}
 	If (OutPutVar <> "=")
 	{
 			Send,%OutPutVar%
