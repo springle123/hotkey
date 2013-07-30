@@ -621,7 +621,14 @@ python_lt()
 		hotkey , $~> , on
 		Return
 	}
-	If (OutPutVar <> "=" && OutPutVar <> ">")
+	if(OutPutVar = ">")
+	{
+		send, %OutPutVar%
+		hotkey , $~= , on
+		hotkey , $~> , on
+		return
+	}
+	If (OutPutVar <> "=")
 	{
 			Send,{left}{Space}{right}{Space}%OutPutVar%
 			hotkey , $~= , on
