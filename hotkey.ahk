@@ -590,7 +590,9 @@ python_hotkey()
 {
 	Hotkey, IfWinActive, .*\.(py|ahk|AHK|PY) - Notepad++
 	hotkey , $~= , off
-	Input, OutPutVar, L1
+	Input, OutPutVar, L1, {LControl}{RControl}{LAlt}{RAlt}{Left}{Right}{Up}{Down}{BS}
+	if(OutPutVar = "")
+		return
 	If (OutPutVar <> "=")
 	{
 			Send,{left}{Space}{right}{Space}%OutPutVar%
@@ -608,8 +610,9 @@ python_lt()
 	Hotkey, IfWinActive, .*\.(py|ahk|AHK|PY) - Notepad++
 	hotkey , $~= , off
 	hotkey , $~> , off
-	Input,OutPutVar,L1,
-
+	Input,OutPutVar,L1,{LControl}{RControl}{LAlt}{RAlt}{Left}{Right}{Up}{Down}{BS}
+	if(OutPutVar = "")
+		return
 	If (OutPutVar <> "=" && OutPutVar <> ">")
 	{
 			Send,{left}{Space}{right}{Space}%OutPutVar%
@@ -629,8 +632,9 @@ python_unequal()
 {
 	Hotkey, IfWinActive, .*\.(py|ahk|AHK|PY) - Notepad++
 	hotkey , $~= , off
-	Input, OutPutVar, L1, {BS}{Left}{Right}{Up}{Down}
-
+	Input, OutPutVar, L1, {LControl}{RControl}{LAlt}{RAlt}{Left}{Right}{Up}{Down}{BS}
+	if(OutPutVar = "")
+		return
 	If (OutPutVar <> "=")
 	{
 			Send,%OutPutVar%
@@ -651,8 +655,9 @@ python_equal()
 		return
 	}
 	
-	Input,OutPutVar,L1,
-
+	Input,OutPutVar,L1,{LControl}{RControl}{LAlt}{RAlt}{Left}{Right}{Up}{Down}{BS}
+	if(OutPutVar="")
+		return
 	If (OutPutVar <> "=")
 	{
 			if(OutPutVar = """")
