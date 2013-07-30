@@ -14,13 +14,19 @@ CoordMode, Mouse, Screen      ;;鼠标坐标轴为屏幕
 
 CoordMode, ToolTip, Screen    ;;工具条坐标轴为屏幕
 
-ActiveWinHwnd :=                ;;激活窗口ID
+ActiveWinHwnd :=              ;;激活窗口ID
 
 Xdelta := 50				  ;;横向窗口移动量
 
 Ydelta := 30				  ;;纵向窗口移动量
 
 CloseState:="on"              ;;开启自动关闭CMD窗口
+
+hotkey, MButton, off          ;;初始设置中键快捷键为关闭
+
+hotkey, ESC, off			  ;;初始设置ESC快捷键为关闭	
+
+PanelHwnd := ""				  ;;初始化翻译界面句柄
 
 if(is_snadial_run())
 {
@@ -100,6 +106,16 @@ pause::
 
 ^d::	;;translate specified English sentences
 	translate_to_clipboard()
+	return
+	
+MButton::   ;;exit translate panel
+ESC::		;;exit translate panel
+	Gui, Panel:	destroy
+	IfWinNotExist , ahk_id%PanelHwnd%
+	{
+		hotkey, MButton, off
+		hotkey, ESC, off
+	}
 	return
 
 ^t::	;;translate specified English sentences from clipboard
@@ -383,14 +399,16 @@ hide_tray()
 	}
 }
 
-Translate_to_clipboard(Copy = "yes")
+translate_to_clipboard(IsCopy = "yes")
 {
-	if(Copy = "yes")
+	global PanelHwnd
+	
+	if(IsCopy = "yes")
 	{
 		clipboard=
 		sleep,200
 		send,^c
-		clipwait,1
+		clipwait,2
 	}
 	
 	if clipboard=
@@ -402,44 +420,128 @@ Translate_to_clipboard(Copy = "yes")
 		suspend()
 		return
 	}
+		
+	ifwinexist, ahk_id%PanelHwnd%
+		winclose, ahk_id%PanelHwnd%	
 	
-	StringReplace, clipboard, clipboard, `r`n, %A_SPACE%, All   ;;复制文字后去掉剪切板中的换行符
-	ifinstring, clipboard, Read more: http
+	str:=clipboard
+	
+	preproccess_string(str)
+	
+	TanslateStr := translate(str)
+	
+	eliminate_unexpected_word(TanslateStr)
+	
+	clipboard := TanslateStr
+		
+	if(is_chinese(TanslateStr))
+		width := strlen(TanslateStr)*15 + 15
+	else
+		width := strlen(TanslateStr)*9 + 15
+	
+	if(width > 400)
+		width := 400
+	
+	show_translate_panel(TanslateStr, width)
+	OnMessage(0x201, "WM_LBUTTONDOWN")
+	
+	ifwinexist, ahk_id%PanelHwnd%
 	{
-		clipboard := RegExReplace(clipboard, "Read more: http.*", "") 
+		hotkey, MButton, on
+		hotkey, ESC, on
 	}
-	Engstr := clipboard
-	GoogleUrl := "http://translate.google.com/?langpair=auto|zh-CN&text="
-	GoogleUrl .= Engstr
-	WebRequest := ComObjCreate("WinHttp.WinHttpRequest.5.1")
 	
-	WebRequest.Open("GET", GoogleUrl, false)
-	WebRequest.setRequestHeader("User-Agent","Mozilla/5.0 (Windows NT 6.1; rv:19.0) Gecko/20100101 Firefox/19.0")
+}
+
+show_translate_panel( TanslateStr, width)
+{
+	global PanelHwnd
+	Gui, Panel:	New 
+	Gui, Panel:	font, s11, Verdana 
+	Gui, Panel:	Add, Text, -vscroll W%width%, %TanslateStr%
+	Gui, Panel:	-Caption +HwndPanelHwnd +AlwaysOnTop     ;+AlwaysOnTop
+	MouseGetPos, xpos, ypos
+	ypos += 30
+	
+	Gui, Panel: Show, X%xpos% Y%ypos%
+	
+}
+
+WM_LBUTTONDOWN()
+{
+	;Drag Gui
+	PostMessage, 0xA1, 2
+}
+
+StrPutVar(string, ByRef var, encoding)
+{
+    ; 确定容量.
+    VarSetCapacity( var, StrPut(string, encoding)
+        ; StrPut 返回字符数, 但 VarSetCapacity 需要字节数.初始化为0
+        * ((encoding="utf-16"||encoding="cp1200") ? 2 : 1), 0)
+    ; 复制或转换字符串.
+    return StrPut(string, &var, encoding)
+}
+
+is_chinese(str)
+{
+	str :=  LTrim(str, "0123456789 `t“”")
+	NewStr := SubStr(str, 1, 1)
+	StrPutVar(NewStr, var, "utf-8")
+	number := NumGet(var, 0, "UInt")
+	if(number > 256)
+		return true
+	else
+		return false	
+}
+
+preproccess_string(byref str)
+{
+	StringReplace, str, str, `r`n, %A_SPACE%, All   ;;复制文字后去掉剪切板中的换行符
+	ifinstring, str, Read more: http
+	{
+		str := RegExReplace(str, "Read more: http.*", "") 
+	}
+}
+
+translate(byref str)
+{
+	
+	if(is_chinese(str))
+		POSTData := "hl=en&sl=zh-CN&ie=utf-8&tl=en&text="
+	else
+		POSTData := "hl=en&sl=en&ie=utf-8&tl=zh-CN&text="
+		
+	POSTData .= str
+	
+	url := "http://translate.google.com/"
+	
+	WebRequest := ComObjCreate("Microsoft.XMLHTTP")
+	WebRequest.Open("POST", url,False)
+	WebRequest.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=UTF-8")
 	WebRequest.setRequestHeader("Connection","keep-alive")
 	WebRequest.setRequestHeader("Host","translate.google.cn")
+	WebRequest.setRequestHeader("Content-Length", StrLen(POSTData))
+	WebRequest.Send(POSTData)
 	
-	WebRequest.Send()
-	errorcode := A_LastError
-	
-	if (errorcode != 0)
-	{
-		traytip,,网络连接失败，请再试一次。
-		return
-	}
-	
-	result := WebRequest.ResponseText 
+	result := WebRequest.ResponseText
 	RegExMatch(result, "TRANSLATED_TEXT='(.*)';INPUT_TOOL_PATH=", SubPat)  
-	TanslateStr := SubPat1
-	clipboard := TanslateStr
-	;msgbox, %result%
-	MouseGetPos, xpos, ypos
-	ypos+=40 
-	
-	ToolTip, %TanslateStr%, %xpos%, %ypos% 
-	
-	SetTimer, RemoveToolTip, 8000
-	
+	TanslateStr := SubPat1 
+	return TanslateStr
+}
 
+eliminate_unexpected_word(byref TanslateStr)
+{
+	loop
+	{
+		if(RegExMatch(TanslateStr, "\\x26quot;(.*)\\x26quot;" ,OutPutVar))
+		{
+			strQuote = "%OutPutVar1%"
+			TanslateStr := RegExReplace(TanslateStr, "\\x26quot;(.*)\\x26quot;", strQuote)
+		}
+		else
+			break
+	}
 }
 
 is_snadial_run()
@@ -725,7 +827,3 @@ CloseCMD()
 }
 ;////////FunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunction
 
-RemoveToolTip:
-	SetTimer, RemoveToolTip, Off
-	ToolTip
-	return
