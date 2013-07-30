@@ -2,8 +2,6 @@
 
 #include  <message> 		;;包含Messge库
 
-#CommentFlag ;
-
 SetBatchlines -1              ;;全速运行
 
 SetTitleMatchMode,RegEx       ;;窗口匹配方式为正则匹配
