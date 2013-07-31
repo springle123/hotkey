@@ -897,6 +897,7 @@ git_commit()
 		while(!Comment)
 			sleep, 1000
 		Output := StdoutToVar_CreateProcess("git commit -m " . """" . Comment . """", "", folder)
+		Comment := ""
 		msgbox, %Output%
 		Output := StdoutToVar_CreateProcess("git remote -v", "", folder)
 		if(!Output)
