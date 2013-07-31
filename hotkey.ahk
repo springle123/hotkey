@@ -914,7 +914,7 @@ git_commit()
 		else
 		{
 			Output := StdoutToVar_CreateProcess("git push origin master", "", folder)
-			msgbox, %Output%
+			traytip, , %Output%
 		}
 		
 	}
