@@ -902,14 +902,9 @@ git_commit()
 		Output := StdoutToVar_CreateProcess("git remote -v", "", folder)
 		if(!Output)
 		{
-			msgbox, 4, , 此资料库未加入远程管理， 是否加入？
-			ifmsgbox no
-				return
-			else
-			{
-				run, https://github.com/
-				return
-			}
+			traytip, , 此资料库未加入远程管理!
+			return
+			
 		}
 		else
 		{
