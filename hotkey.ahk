@@ -24,7 +24,7 @@ CloseState:="on"              ;;开启自动关闭CMD窗口
 
 hotkey, MButton, off          ;;初始设置中键快捷键为关闭
 
-hotkey, ESC, off			  ;;初始设置ESC快捷键为关闭	
+hotkey, Space, off			  ;;初始设置Space快捷键为关闭	
 
 PanelHwnd := ""				  ;;初始化翻译界面句柄
 
@@ -113,12 +113,12 @@ pause::
 	return
 	
 MButton::   ;;exit translate panel
-ESC::		;;exit translate panel
+Space::		;;exit translate panel
 	Gui, Panel:	destroy
 	IfWinNotExist , ahk_id%PanelHwnd%
 	{
 		hotkey, MButton, off
-		hotkey, ESC, off
+		hotkey, Space, off
 	}
 	return
 
@@ -463,7 +463,7 @@ translate_to_clipboard(IsCopy = "yes")
 	ifwinexist, ahk_id%PanelHwnd%
 	{
 		hotkey, MButton, on
-		hotkey, ESC, on
+		hotkey, Space, on
 	}
 	
 }
