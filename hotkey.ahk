@@ -452,7 +452,7 @@ translate_to_clipboard(IsCopy = "yes")
 	if(is_chinese(TanslateStr))
 		width := strlen(TanslateStr)*15 + 15
 	else
-		width := strlen(TanslateStr)*9 + 15
+		width := strlen(TanslateStr)*8 + 10
 	
 	if(width > 400)
 		width := 400
@@ -500,9 +500,9 @@ StrPutVar(string, ByRef var, encoding)
 
 is_chinese(str)
 {
-	str :=  LTrim(str, "0123456789 `t“”")
-	NewStr := SubStr(str, 1, 1)
-	StrPutVar(NewStr, var, "utf-8")
+	RegExMatch(str, "(*UCP)[^\d\W]+", str)
+	StringLeft, str, str, 1
+	StrPutVar(str, var, "utf-8")
 	number := NumGet(var, 0, "UInt")
 	if(number > 256)
 		return true
