@@ -587,6 +587,13 @@ RunProgram(Name, path, visible=true)
 			process, close, %Name%
 			process, close, WordBook.exe
 		}
+		else if(Name="Everything.exe")
+		{
+			IfWinExist ahk_class EVERYTHING
+				winhide, ahk_class EVERYTHING
+			else 
+				winshow, ahk_class EVERYTHING
+		}
 		else
 			process, close, %Name%
 		RefreshTray() 
