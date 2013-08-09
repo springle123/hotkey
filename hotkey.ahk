@@ -20,7 +20,7 @@ Xdelta := 50				  ;;横向窗口移动量
 
 Ydelta := 30				  ;;纵向窗口移动量
 
-CloseState:="on"              ;;开启自动关闭CMD窗口
+CloseState:="off"              ;;开启自动关闭CMD窗口
 
 hotkey, MButton, off          ;;初始设置中键快捷键为关闭
 
@@ -921,6 +921,20 @@ git_commit()
 			FileCreateDir, %folder%
 			sleep, 100
 			git_init(folder)
+			filecopy, %filePath%, %folder%, 1
+			if(ErrorLevel != 0)
+			{
+				msgbox, 复制文件失败！
+				return
+			}
+			Output := StdoutToVar_CreateProcess("git add " . fileName, "", folder)
+			;msgbox, %Output%
+			comment_gui()
+			while(!Comment)
+				sleep, 1000
+			Output := StdoutToVar_CreateProcess("git commit -m " . """" . Comment . """", "", folder)
+			Comment := ""
+			msgbox, %Output%
 		}
 	}
 	
@@ -930,7 +944,7 @@ git_commit()
 git_init(folder)
 {
 	Output := StdoutToVar_CreateProcess("git init", "", folder)
-	msgbox, %Output%
+	; msgbox, %Output%
 	ifnotinstring, Output, Initialized empty Git repository
 	{
 		msgbox, git init 命令失败 ! 请检查文件夹参数是否正确。
