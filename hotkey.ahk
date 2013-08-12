@@ -104,9 +104,9 @@ pause::
 	return
 
 
-#h::	;;hide tray window
-	hide_tray()
-	return
+; #h::	;;hide tray window
+	; hide_tray()
+	; return
 
 ^d::	;;translate selected sentences
 	translate_to_clipboard()
@@ -160,9 +160,9 @@ SHIFT & mButton::	;;get mouse coordinate
 	get_mouse_cood()
 	return
 
-; #h::	;;send html frame
-	; send_html_frame()
-	; return
+#h::	;;send html frame
+	send_html_frame()
+	return
 
 ^!o::	;;run path of active program
 	run_program_path()
@@ -170,6 +170,10 @@ SHIFT & mButton::	;;get mouse coordinate
 	
 #g::
 	git_commit()
+	return
+	
++f::    ;;search baidu engine with clipboard as keyword
+	search_baidu()
 	return
 
 	
@@ -454,12 +458,12 @@ translate_to_clipboard(IsCopy = "yes")
 	else
 		width := strlen(TanslateStr)*8 + 10
 	
-	if(width > 400)
-		width := 400
+	if(width > 500)
+		width := 500
 	
 	show_translate_panel(TanslateStr, width)
 	OnMessage(0x201, "WM_LBUTTONDOWN")
-	
+	sleep, 200
 	ifwinexist, ahk_id%PanelHwnd%
 	{
 		hotkey, MButton, on
@@ -592,7 +596,11 @@ RunProgram(Name, path, visible=true)
 			IfWinExist ahk_class EVERYTHING
 				winhide, ahk_class EVERYTHING
 			else 
+			{
 				winshow, ahk_class EVERYTHING
+				winset, AlwaysOnTop, on, ahk_class EVERYTHING
+				winactivate, ahk_class EVERYTHING
+			}
 		}
 		else
 			process, close, %Name%
@@ -1095,6 +1103,101 @@ StdoutToVar_CreateProcess(sCmd, bStream="", sDir="", sInput="")
 
    Return,sOutput
 
+}
+
+search_baidu()
+{	
+	clipboard=
+	sleep,200
+	send,^c
+	clipwait,2
+	ie := ComObjCreate("InternetExplorer.Application")
+	ie.Visible := true  ; 已知这个语句在 IE7 上无法正常执行.
+	url := "http://www.baidu.com/s?word=" . UrlEncode(clipboard)
+	ie.Navigate(url)
+	while ie.Busy
+		sleep, 100
+	while ie.document.readystate!="complete"
+		sleep,100
+}
+
+UrlEncode(String,CharacterSet="cp0")
+{
+  OldFormat := A_FormatInteger
+  SetFormat, Integer, H
+  Loop, Parse, String
+    {
+      If A_LoopField is Alnum
+        {
+          Out .= A_LoopField
+          Continue
+        }
+
+      If A_LoopField is Space
+        {
+          Out .= "%20"
+          Continue
+        }
+
+
+      If         (CharacterSet="cp0"||CharacterSet="gb2312"||CharacterSet="gbk")
+          Out .= getChr_GBK_Code(A_LoopField)
+      Else
+          Out .= getChr_UTF8_Code(A_LoopField)
+
+    }
+  SetFormat, Integer, %OldFormat%
+  Return Out
+}
+
+
+getChr_UTF8_Code(UTF16){
+    SetFormat, Integer, H
+    StrPutVar(UTF16,UTF8,"UTF-8")
+	;msgbox, %UTF16%
+    ChrUTF8Code := NumGet(UTF8, 0, "UInt")
+	str := strget(&UTF8, 2, "gbk")
+	;VarSetCapacity( tempstr, StrPut(UTF16, "UTF-8")*2)
+	;hello:=NumPut(ChrUTF8Code, tempstr, 0, "UInt")
+	;str := strget(, strlen(UTF16), "UTF-8")
+	;msgbox, %str%
+	;msgbox, %tempstr%
+    ;~ 0xB188E7
+    StringMid,ch3,ChrUTF8Code,3,2
+    StringMid,ch2,ChrUTF8Code,5,2
+    StringMid,ch1,ChrUTF8Code,7,2
+    ChrUTF8Code := SubStr(ChrUTF8Code, 3 )  ;  ԫ StringReplace, Hex, Hex, 0x,,All  ͬmìܴȥԽ0x
+     If  (StrLen( ChrUTF8Code)=6)
+          {
+            ChrUTF8Code:="%" . ch1 . "%" . ch2 . "%" . ch3
+          }
+      Else
+        ChrUTF8Code:="%" . ChrUTF8Code
+ 
+    ;~ %E7%88%B1
+    Return ChrUTF8Code
+}
+
+getChr_GBK_Code(UTF16)
+{
+  SetFormat, Integer, H
+  StrPutVar(UTF16, var, "cp0")
+  ChrGBKCode := NumGet(var, 0, "UInt")
+  StringMid,ch2,ChrGBKCode,3,2
+  StringMid,ch1,ChrGBKCode,5,2
+  ChrGBKCode := SubStr(ChrGBKCode, 3 )  ;  ԫ StringReplace, Hex, Hex, 0x,,All  ͬmìܴȥԽ0x
+   If  (StrLen( ChrGBKCode)=4)
+        {
+        ChrGBKCode:= "%" . ch1 . "%" . ch2
+  ;~                   MsgBox,%UTF16%,%ChrGBKCode%
+    }
+ If  (StrLen( ChrGBKCode)=2)
+        {
+        ChrGBKCode:= "%" . ch2
+  ;~                   MsgBox,%UTF16%,%ChrGBKCode%
+    }
+
+  Return ChrGBKCode
 }
 ;////////FunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunction
 
