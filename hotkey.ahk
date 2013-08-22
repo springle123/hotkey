@@ -104,15 +104,17 @@ pause::
 	return
 
 
-; #h::	;;hide tray window
-	; hide_tray()
-	; return
+#h::	;;hide tray window
+	hide_window("ahk_class Shell_TrayWnd")
+	return
 
+#IfWinNotActive	  ahk_class TTOTAL_CMD
 ^d::	;;translate selected sentences
 	translate_to_clipboard()
 	return
-	
-MButton::   ;;exit translate panel
+#IfWinNotActive
+
+MButton::
 Space::		;;exit translate panel
 	Gui, Panel:	destroy
 	IfWinNotExist , ahk_id%PanelHwnd%
@@ -149,7 +151,7 @@ Space::		;;exit translate panel
 	return
 
 LWin & F1:: 	;;launch youdao dictionary， window hidden
-	RunProgram("YodaoDict.exe", "C:\Users\lcq\AppData\Local\Youdao\Dict\Application\YodaoDict.exe", false)
+	hide_window("ahk_class YodaoMainWndClass")
 	return
 
 LControl & F1:: 	;;launch youdao dictionary
@@ -160,9 +162,9 @@ SHIFT & mButton::	;;get mouse coordinate
 	get_mouse_cood()
 	return
 
-#h::	;;send html frame
-	send_html_frame()
-	return
+; #h::	;;send html frame
+	; send_html_frame()
+	; return
 
 ^!o::	;;run path of active program
 	run_program_path()
@@ -175,7 +177,14 @@ SHIFT & mButton::	;;get mouse coordinate
 +f::    ;;search baidu engine with clipboard as keyword
 	search_baidu()
 	return
+	
+^!n::
+	run notepad
+	return
 
+!F3::
+run, F:\literature	
+return
 	
 #IfWinActive 按键精灵
 
@@ -248,6 +257,24 @@ $~!::
 
 #IfWinActive
 
+#ifwinactive ahk_class AcrobatSDIWindow
++s::
+click_pic("C:\Users\lcq\Desktop\resource\pdfpic\select.bmp")
+return
+
++h::
+click_pic("C:\Users\lcq\Desktop\resource\pdfpic\highlight.bmp")
+return
+
++a::
+click_pic("C:\Users\lcq\Desktop\resource\pdfpic\addtext.bmp")
+return
+
++u::
+click_pic("C:\Users\lcq\Desktop\resource\pdfpic\underline.bmp")
+return
+
+#ifwinactive
 
 
 
@@ -404,17 +431,28 @@ move_window(direction, delta)
 	return
 }
 
-hide_tray()
+hide_window(ahkclass)
 {
-	IfWinExist,ahk_class Shell_TrayWnd
+	IfWinExist,%ahkclass%
 	{
-		WinHide,ahk_class Shell_TrayWnd
-		WinHide,开始 ahk_class Button
+		
+		if(ahkclass = "ahk_class Shell_TrayWnd")
+			WinHide,开始 ahk_class Button
+		if(ahkclass="ahk_class YodaoMainWndClass")
+			winclose, %ahkclass%
+		else
+			WinHide,%ahkclass%
 	}
 	Else
 	{
-		WinShow,ahk_class Shell_TrayWnd
-		WinShow,开始 ahk_class Button
+		WinShow,%ahkclass%
+		if(ahkclass = "ahk_class Shell_TrayWnd")
+			WinShow,开始 ahk_class Button
+		else
+		{
+			winwait, %ahkclass%
+			winactivate, %ahkclass%
+		}
 	}
 }
 
@@ -463,7 +501,6 @@ translate_to_clipboard(IsCopy = "yes")
 	
 	show_translate_panel(TanslateStr, width)
 	OnMessage(0x201, "WM_LBUTTONDOWN")
-	sleep, 200
 	ifwinexist, ahk_id%PanelHwnd%
 	{
 		hotkey, MButton, on
@@ -1198,6 +1235,17 @@ getChr_GBK_Code(UTF16)
     }
 
   Return ChrGBKCode
+}
+
+
+click_pic(picRoute)
+{
+	MouseGetPos,orinx,oriny 
+	imagesearch, intx, inty, 0, 0, 1366, 768, *10 %picRoute%
+	intx += 5
+	inty += 5
+	click %intx% %inty%
+	MouseMove, %orinx%, %oriny%
 }
 ;////////FunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunction
 
