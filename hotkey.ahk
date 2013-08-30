@@ -38,6 +38,8 @@ if(is_snadial_run())
 	hotkey, ^!a, off
 }
 
+
+
 loop	
 	{
 		CloseCMD()
@@ -66,6 +68,7 @@ pause::
 ; #g::	;;get active window ID
 	; ActiveWinHwnd := get_active_win()
 	; return
+	
 	
 #c::
 	run, %windir%\system32\calc.exe
@@ -183,8 +186,10 @@ SHIFT & mButton::	;;get mouse coordinate
 	return
 
 !F3::
-run, F:\literature	
-return
+	run, F:\literature	
+	return
+
+
 	
 #IfWinActive 按键精灵
 
@@ -225,6 +230,13 @@ $s::
 #IfWinActive
 
 #IfWinActive .*\.(py|ahk|AHK|PY) - Notepad++
+
+F1::
+	ifwinexist, ahk_class HH Parent
+		winactivate, ahk_class HH Parent
+	else
+		run, C:\Users\lcq\Desktop\AutoHotkey.chm
+	return
 
 $~=:: 
 	python_equal()
@@ -445,6 +457,16 @@ hide_window(ahkclass)
 	}
 	Else
 	{
+		if(ahkclass="ahk_class YodaoMainWndClass")
+		{
+			process, exist, YodaoDict.exe
+			hWnd := errorlevel
+			if(hWnd=0)
+			{
+				RunProgram("YodaoDict.exe", "C:\Users\lcq\AppData\Local\Youdao\Dict\Application\YodaoDict.exe", false)
+				return
+			}
+		}
 		WinShow,%ahkclass%
 		if(ahkclass = "ahk_class Shell_TrayWnd")
 			WinShow,开始 ahk_class Button
@@ -618,6 +640,7 @@ is_snadial_run()
 
 RunProgram(Name, path, visible=true)
 {
+	global WM_COMMAND
 	process, exist, %Name%
 	hWnd := errorlevel
 	
@@ -634,14 +657,16 @@ RunProgram(Name, path, visible=true)
 				winhide, ahk_class EVERYTHING
 			else 
 			{
-				winshow, ahk_class EVERYTHING
-				winset, AlwaysOnTop, on, ahk_class EVERYTHING
-				winactivate, ahk_class EVERYTHING
+				detecthiddenwindows, on
+				sendmessage, WM_COMMAND, 0x00009C41,0x00000000, , ahk_class EVERYTHING_TASKBAR_NOTIFICATION
+				detecthiddenwindows, off
 			}
 		}
 		else
+		{
 			process, close, %Name%
-		RefreshTray() 
+			RefreshTray()
+		}
 	}
 	else
 	{
@@ -1247,5 +1272,6 @@ click_pic(picRoute)
 	click %intx% %inty%
 	MouseMove, %orinx%, %oriny%
 }
+
 ;////////FunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunction
 
