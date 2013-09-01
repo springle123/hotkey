@@ -69,6 +69,10 @@ pause::
 	; ActiveWinHwnd := get_active_win()
 	; return
 	
+#ESC::
+	run_totalcmd()
+	return
+	
 	
 #c::
 	run, %windir%\system32\calc.exe
@@ -229,15 +233,17 @@ $s::
 	
 #IfWinActive
 
-#IfWinActive .*\.(py|ahk|AHK|PY) - Notepad++
+
+#IfWinActive .*\.(ahk|AHK) - Notepad++
 
 F1::
-	ifwinexist, ahk_class HH Parent
-		winactivate, ahk_class HH Parent
-	else
-		run, C:\Users\lcq\Desktop\AutoHotkey.chm
+	open_helpfile("ahk")
 	return
+	
+#IfWinActive
 
+#IfWinActive .*\.(py|ahk|AHK|PY) - Notepad++	
+	
 $~=:: 
 	python_equal()
 	return
@@ -345,38 +351,59 @@ suspend()
 	return
 }
 
+hide_window(ahkclass)
+{
+	IfWinExist,%ahkclass%
+	{
+		
+		if(ahkclass = "ahk_class Shell_TrayWnd")
+			WinHide,开始 ahk_class Button
+		if(ahkclass="ahk_class YodaoMainWndClass")
+			winclose, %ahkclass%
+		else
+			WinHide,%ahkclass%
+	}
+	Else
+	{
+		if(ahkclass="ahk_class YodaoMainWndClass")
+		{
+			process, exist, YodaoDict.exe
+			hWnd := errorlevel
+			if(hWnd=0)
+			{
+				RunProgram("YodaoDict.exe", "C:\Users\lcq\AppData\Local\Youdao\Dict\Application\YodaoDict.exe", false)
+				return
+			}
+		}
+		WinShow,%ahkclass%
+		if(ahkclass = "ahk_class Shell_TrayWnd")
+			WinShow,开始 ahk_class Button
+		else
+		{
+			winwait, %ahkclass%
+			winactivate, %ahkclass%
+		}
+	}
+}
+
+is_chinese(str)
+{
+	RegExMatch(str, "(*UCP)[^\d\W]+", str)
+	StringLeft, str, str, 1
+	StrPutVar(str, var, "utf-8")
+	number := NumGet(var, 0, "UInt")
+	if(number > 256)
+		return true
+	else
+		return false	
+}
+
 get_active_win()
 {
 	winget,ActiveWinId,id,A
 	wingettitle,title,ahk_id %ActiveWinId%
 	traytip,,得到%title%的句柄。。。
 	return ActiveWinId
-}
-
-set_win_ontop()
-{
-	winget,Cid,id,A
-	
-	winset,alwaysontop,,ahk_id %Cid%
-	
-	wingettitle,title,ahk_id %Cid%
-	
-	WinGet, ExStyle, ExStyle,%title%
-	
-	if (ExStyle & 0x8)
-		traytip,,正在设置 %title% 窗口置顶。。。
-	else
-		traytip,,正在取消 %title% 窗口置顶。。。
-	return
-}
-
-set_win_pos(left, top, width, height)
-{
-	global WM_SYSCOMMAND
-	winget,Cid,id,A
-	;winmove, ahk_id %Cid%, , left, top, width, height
-	DllCall("MoveWindow", "UInt", Cid, "Int", left, "Int", top, "Int", width, "Int", height, "Int", 1)
-	sendmessage, WM_SYSCOMMAND, 0x0000F122, 0x00120250, , ahk_id %Cid%
 }
 
 MaximizeWin()
@@ -388,12 +415,6 @@ MaximizeWin()
 	sendmessage, WM_SYSCOMMAND, 0x0000F030, 0x0006026A, , ahk_id %Cid%
 	
 	return
-}
-
-window()
-{
-	winget,Cid,id,A
-	winmove, ahk_id %Cid%, , 0, 0, 800, 600 
 }
 
 move_window(direction, delta)
@@ -443,40 +464,47 @@ move_window(direction, delta)
 	return
 }
 
-hide_window(ahkclass)
+set_win_ontop()
 {
-	IfWinExist,%ahkclass%
-	{
-		
-		if(ahkclass = "ahk_class Shell_TrayWnd")
-			WinHide,开始 ahk_class Button
-		if(ahkclass="ahk_class YodaoMainWndClass")
-			winclose, %ahkclass%
-		else
-			WinHide,%ahkclass%
-	}
-	Else
-	{
-		if(ahkclass="ahk_class YodaoMainWndClass")
-		{
-			process, exist, YodaoDict.exe
-			hWnd := errorlevel
-			if(hWnd=0)
-			{
-				RunProgram("YodaoDict.exe", "C:\Users\lcq\AppData\Local\Youdao\Dict\Application\YodaoDict.exe", false)
-				return
-			}
-		}
-		WinShow,%ahkclass%
-		if(ahkclass = "ahk_class Shell_TrayWnd")
-			WinShow,开始 ahk_class Button
-		else
-		{
-			winwait, %ahkclass%
-			winactivate, %ahkclass%
-		}
-	}
+	winget,Cid,id,A
+	
+	winset,alwaysontop,,ahk_id %Cid%
+	
+	wingettitle,title,ahk_id %Cid%
+	
+	WinGet, ExStyle, ExStyle,%title%
+	
+	if (ExStyle & 0x8)
+		traytip,,正在设置 %title% 窗口置顶。。。
+	else
+		traytip,,正在取消 %title% 窗口置顶。。。
+	return
 }
+
+set_win_pos(left, top, width, height)
+{
+	global WM_SYSCOMMAND
+	winget,Cid,id,A
+	;winmove, ahk_id %Cid%, , left, top, width, height
+	DllCall("MoveWindow", "UInt", Cid, "Int", left, "Int", top, "Int", width, "Int", height, "Int", 1)
+	sendmessage, WM_SYSCOMMAND, 0x0000F122, 0x00120250, , ahk_id %Cid%
+}
+
+
+show_translate_panel( TanslateStr, width)
+{
+	global PanelHwnd
+	Gui, Panel:	New 
+	Gui, Panel:	font, s11, Verdana 
+	Gui, Panel:	Add, Text, -vscroll W%width%, %TanslateStr%
+	Gui, Panel:	-Caption +HwndPanelHwnd +AlwaysOnTop     ;+AlwaysOnTop
+	MouseGetPos, xpos, ypos
+	ypos += 30
+	
+	Gui, Panel: Show, X%xpos% Y%ypos%
+	
+}
+
 
 translate_to_clipboard(IsCopy = "yes")
 {
@@ -531,24 +559,17 @@ translate_to_clipboard(IsCopy = "yes")
 	
 }
 
-show_translate_panel( TanslateStr, width)
-{
-	global PanelHwnd
-	Gui, Panel:	New 
-	Gui, Panel:	font, s11, Verdana 
-	Gui, Panel:	Add, Text, -vscroll W%width%, %TanslateStr%
-	Gui, Panel:	-Caption +HwndPanelHwnd +AlwaysOnTop     ;+AlwaysOnTop
-	MouseGetPos, xpos, ypos
-	ypos += 30
-	
-	Gui, Panel: Show, X%xpos% Y%ypos%
-	
-}
-
 WM_LBUTTONDOWN()
 {
 	;Drag Gui
 	PostMessage, 0xA1, 2
+}
+
+
+window()
+{
+	winget,Cid,id,A
+	winmove, ahk_id %Cid%, , 0, 0, 800, 600 
 }
 
 StrPutVar(string, ByRef var, encoding)
@@ -559,18 +580,6 @@ StrPutVar(string, ByRef var, encoding)
         * ((encoding="utf-16"||encoding="cp1200") ? 2 : 1), 0)
     ; 复制或转换字符串.
     return StrPut(string, &var, encoding)
-}
-
-is_chinese(str)
-{
-	RegExMatch(str, "(*UCP)[^\d\W]+", str)
-	StringLeft, str, str, 1
-	StrPutVar(str, var, "utf-8")
-	number := NumGet(var, 0, "UInt")
-	if(number > 256)
-		return true
-	else
-		return false	
 }
 
 preproccess_string(byref str)
@@ -650,6 +659,7 @@ RunProgram(Name, path, visible=true)
 		{
 			process, close, %Name%
 			process, close, WordBook.exe
+			RefreshTray()
 		}
 		else if(Name="Everything.exe")
 		{
@@ -1272,6 +1282,40 @@ click_pic(picRoute)
 	click %intx% %inty%
 	MouseMove, %orinx%, %oriny%
 }
+
+open_helpfile(language)
+{
+	if(language="ahk")
+	{
+		ifwinexist, AutoHotkey 中文帮助
+			winactivate, AutoHotkey 中文帮助
+		else
+			run, C:\Users\lcq\Desktop\AutoHotkey.chm
+	}
+	return
+}
+
+run_totalcmd()
+{
+	run, D:\totalcmd\TOTALCMD.EXE
+	winwait, ahk_class TNASTYNAGSCREEN
+	winwaitactive, ahk_class TNASTYNAGSCREEN
+	
+	dm := ComObjCreate("dm.dmsoft")
+	
+	RegWinHwnd := dm.FindWindow("TNASTYNAGSCREEN","Total Commander")
+	dm_ret := dm.SetDict(0,"C:\Users\lcq\Desktop\resource\dm_soft.txt")
+	dm.BindWindow(RegWinHwnd,"gdi","normal","normal",0)
+	s := dm.Ocr(229,198,245,215,"000000-c0c0c0",1.0)
+	
+	if(s="1")
+		controlsend, , 1, ahk_class TNASTYNAGSCREEN
+	else if(s="2")
+		controlsend, , 2, ahk_class TNASTYNAGSCREEN
+	else
+		controlsend, , 3, ahk_class TNASTYNAGSCREEN
+}
+
 
 ;////////FunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunction
 
