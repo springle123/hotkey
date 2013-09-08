@@ -8,7 +8,7 @@ SetTitleMatchMode,RegEx       ;;窗口匹配方式为正则匹配
 
 sendmode input                ;;send模式为input
 
-ComObjError(false)			  ;;关闭Com错误信息
+;ComObjError(false)			  ;;关闭Com错误信息
 
 CoordMode, Mouse, Screen      ;;鼠标坐标轴为屏幕
 
@@ -70,7 +70,7 @@ pause::
 	; return
 	
 #ESC::
-	run_totalcmd()
+	run_and_hide("TOTALCMD.EXE", "D:\totalcmd\TOTALCMD.EXE", "ahk_class TTOTAL_CMD")
 	return
 	
 	
@@ -154,7 +154,8 @@ Space::		;;exit translate panel
 
 
 #f::	;;launch everything.exe
-	RunProgram("Everything.exe", "D:\Small software\Everything\Everything.exe")
+	;RunProgram("Everything.exe", "D:\Small software\Everything\Everything.exe")
+	run_and_hide("Everything.exe", "D:\Small software\Everything\Everything.exe", "ahk_class EVERYTHING")
 	return
 
 LWin & F1:: 	;;launch youdao dictionary， window hidden
@@ -584,7 +585,19 @@ StrPutVar(string, ByRef var, encoding)
 
 preproccess_string(byref str)
 {
-	StringReplace, str, str, `r`n, %A_SPACE%, All   ;;复制文字后去掉剪切板中的换行符
+	if(RegExMatch(str, "(-\r\n\d{2,3})|(-\s\d{2,3}\r\n)"))
+	{
+		str := RegExReplace(str, "\s\d{2,3}(?=\r\n)", "")
+		str := RegExReplace(str, "(?<=\r\n)\d{2,3}\s", "")
+		StringReplace, str, str, `r`n, , All 
+		StringReplace, str, str, -, , All
+	}
+	else
+	{
+		str := RegExReplace(str, "\s\d{2,3}(?=\r\n)", "")
+		str := RegExReplace(str, "(?<=\r\n)\d{2,3}\s", "")
+		StringReplace, str, str, `r`n, %A_SPACE%, All   ;;复制文字后去掉剪切板中的换行符
+	}
 	ifinstring, str, Read more: http
 	{
 		str := RegExReplace(str, "Read more: http.*", "") 
@@ -604,6 +617,7 @@ translate(byref str)
 	url := "http://translate.google.com/"
 	
 	WebRequest := ComObjCreate("Microsoft.XMLHTTP")
+	WebRequest.SetTimeouts(10000, 10000, 10000, 10000)
 	WebRequest.Open("POST", url,False)
 	WebRequest.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=UTF-8")
 	WebRequest.setRequestHeader("Connection","keep-alive")
@@ -660,17 +674,6 @@ RunProgram(Name, path, visible=true)
 			process, close, %Name%
 			process, close, WordBook.exe
 			RefreshTray()
-		}
-		else if(Name="Everything.exe")
-		{
-			IfWinExist ahk_class EVERYTHING
-				winhide, ahk_class EVERYTHING
-			else 
-			{
-				detecthiddenwindows, on
-				sendmessage, WM_COMMAND, 0x00009C41,0x00000000, , ahk_class EVERYTHING_TASKBAR_NOTIFICATION
-				detecthiddenwindows, off
-			}
 		}
 		else
 		{
@@ -1226,27 +1229,20 @@ UrlEncode(String,CharacterSet="cp0")
 getChr_UTF8_Code(UTF16){
     SetFormat, Integer, H
     StrPutVar(UTF16,UTF8,"UTF-8")
-	;msgbox, %UTF16%
     ChrUTF8Code := NumGet(UTF8, 0, "UInt")
 	str := strget(&UTF8, 2, "gbk")
-	;VarSetCapacity( tempstr, StrPut(UTF16, "UTF-8")*2)
-	;hello:=NumPut(ChrUTF8Code, tempstr, 0, "UInt")
-	;str := strget(, strlen(UTF16), "UTF-8")
-	;msgbox, %str%
-	;msgbox, %tempstr%
-    ;~ 0xB188E7
     StringMid,ch3,ChrUTF8Code,3,2
     StringMid,ch2,ChrUTF8Code,5,2
     StringMid,ch1,ChrUTF8Code,7,2
-    ChrUTF8Code := SubStr(ChrUTF8Code, 3 )  ;  ԫ StringReplace, Hex, Hex, 0x,,All  ͬmìܴȥԽ0x
-     If  (StrLen( ChrUTF8Code)=6)
-          {
-            ChrUTF8Code:="%" . ch1 . "%" . ch2 . "%" . ch3
-          }
-      Else
-        ChrUTF8Code:="%" . ChrUTF8Code
+    ChrUTF8Code := SubStr(ChrUTF8Code, 3 )
+	
+    If(StrLen( ChrUTF8Code)=6)
+    {
+		ChrUTF8Code:="%" . ch1 . "%" . ch2 . "%" . ch3
+    }
+    Else
+		ChrUTF8Code:="%" . ChrUTF8Code
  
-    ;~ %E7%88%B1
     Return ChrUTF8Code
 }
 
@@ -1290,7 +1286,7 @@ open_helpfile(language)
 		ifwinexist, AutoHotkey 中文帮助
 			winactivate, AutoHotkey 中文帮助
 		else
-			run, C:\Users\lcq\Desktop\AutoHotkey.chm
+			run, C:\Users\lcq\Desktop\HelpFiles\AutoHotkey.chm
 	}
 	return
 }
@@ -1316,6 +1312,40 @@ run_totalcmd()
 		controlsend, , 3, ahk_class TNASTYNAGSCREEN
 }
 
+run_and_hide(Name, path, className)
+{
+	global WM_COMMAND
+	process, exist, %Name%
+	hWnd := errorlevel
+	
+	if (hWnd != 0)
+	{
+		IfWinExist %className%
+			winhide, %className%
+		else 
+		{
+			if(className="ahk_class EVERYTHING")
+			{
+				detecthiddenwindows, on
+				sendmessage, WM_COMMAND, 0x00009C41,0x00000000, , ahk_class EVERYTHING_TASKBAR_NOTIFICATION
+				detecthiddenwindows, off
+			}
+			else
+			{	
+				winshow, %className%
+				winactivate, %className%
+			}
+		}
+	}
+	else
+	{
+		if(Name="TOTALCMD.EXE")
+			run_totalcmd()
+		else
+			run, %path%
+	}
+	return
+}
 
 ;////////FunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunction
 
