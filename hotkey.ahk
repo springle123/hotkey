@@ -269,12 +269,13 @@ $~!::
 	python_unequal()
 	return
 
-,::
+$,::
 	send,,%a_space%
 	return
 
 
 #IfWinActive
+
 
 #ifwinactive ahk_class AcrobatSDIWindow
 +s::
@@ -291,6 +292,10 @@ return
 
 +u::
 click_pic("C:\Users\lcq\Desktop\resource\pdfpic\underline.bmp")
+
++c::
+	remove_endline()
+	return
 return
 
 #ifwinactive
@@ -585,19 +590,21 @@ StrPutVar(string, ByRef var, encoding)
 
 preproccess_string(byref str)
 {
-	if(RegExMatch(str, "(-\r\n\d{2,3})|(-\s\d{2,3}\r\n)"))
-	{
-		str := RegExReplace(str, "\s\d{2,3}(?=\r\n)", "")
-		str := RegExReplace(str, "(?<=\r\n)\d{2,3}\s", "")
-		StringReplace, str, str, `r`n, , All 
-		StringReplace, str, str, -, , All
-	}
-	else
-	{
-		str := RegExReplace(str, "\s\d{2,3}(?=\r\n)", "")
-		str := RegExReplace(str, "(?<=\r\n)\d{2,3}\s", "")
-		StringReplace, str, str, `r`n, %A_SPACE%, All   ;;复制文字后去掉剪切板中的换行符
-	}
+	
+	; if(RegExMatch(str, "(-\r\n\d{2,3})|(-\s\d{2,3}\r\n)"))
+	; {
+		; str := RegExReplace(str, "\s\d{2,3}(?=\r\n)", "")
+		; str := RegExReplace(str, "(?<=\r\n)\d{2,3}\s", "")
+		; StringReplace, str, str, `r`n, , All 
+		; StringReplace, str, str, -, , All
+	; }
+	; else
+	; {
+		; str := RegExReplace(str, "\s\d{2,3}(?=\r\n)", "")
+		; str := RegExReplace(str, "(?<=\r\n)\d{2,3}\s", "")
+		; StringReplace, str, str, `r`n, %A_SPACE%, All   ;;复制文字后去掉剪切板中的换行符
+	; }
+	StringReplace, str, str, `r`n, %A_SPACE%, All   ;;复制文字后去掉剪切板中的换行符
 	ifinstring, str, Read more: http
 	{
 		str := RegExReplace(str, "Read more: http.*", "") 
@@ -617,7 +624,6 @@ translate(byref str)
 	url := "http://translate.google.com/"
 	
 	WebRequest := ComObjCreate("Microsoft.XMLHTTP")
-	WebRequest.SetTimeouts(10000, 10000, 10000, 10000)
 	WebRequest.Open("POST", url,False)
 	WebRequest.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=UTF-8")
 	WebRequest.setRequestHeader("Connection","keep-alive")
@@ -1182,6 +1188,7 @@ StdoutToVar_CreateProcess(sCmd, bStream="", sDir="", sInput="")
 
 search_baidu()
 {	
+	Oldclipboard := clipboard
 	clipboard=
 	sleep,200
 	send,^c
@@ -1194,6 +1201,7 @@ search_baidu()
 		sleep, 100
 	while ie.document.readystate!="complete"
 		sleep,100
+	clipboard := Oldclipboard
 }
 
 UrlEncode(String,CharacterSet="cp0")
@@ -1315,6 +1323,14 @@ run_totalcmd()
 run_and_hide(Name, path, className)
 {
 	global WM_COMMAND
+	ifwinexist, %className%
+	{
+		IfWinNotActive, %className%
+		{	
+			winactivate, %className%
+			return
+		}
+	}
 	process, exist, %Name%
 	hWnd := errorlevel
 	
@@ -1345,6 +1361,15 @@ run_and_hide(Name, path, className)
 			run, %path%
 	}
 	return
+}
+
+remove_endline()
+{
+	clipboard=
+	sleep,200
+	send,^c
+	clipwait,2
+	StringReplace, clipboard, clipboard, `r`n, %A_SPACE%, All
 }
 
 ;////////FunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunction
