@@ -182,7 +182,7 @@ Space::		;;exit translate panel
 	hotkey, ^!a, off
 	return
 
-^!n::
+^!n::   ;;run notepad
 	run notepad
 	return
 	
