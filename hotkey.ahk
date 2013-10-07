@@ -65,33 +65,47 @@ pause::
 	suspend()
 	return
 
-; #g::	;;get active window ID
-	; ActiveWinHwnd := get_active_win()
-	; return
+#c::
+	run, %windir%\system32\calc.exe
+	return
 	
 #ESC::
 	run_and_hide("TOTALCMD.EXE", "D:\totalcmd\TOTALCMD.EXE", "ahk_class TTOTAL_CMD")
 	return
 	
-	
-#c::
-	run, %windir%\system32\calc.exe
+#f::	;;launch everything.exe
+	;RunProgram("Everything.exe", "D:\Small software\Everything\Everything.exe")
+	run_and_hide("Everything.exe", "D:\Small software\Everything\Everything.exe", "ahk_class EVERYTHING")
 	return
+#g::    ;;comit script to github, see lable
+	git_commit()
+	return
+	
+; #g::	;;get active window ID
+	; ActiveWinHwnd := get_active_win()
+	; return
 
+#h::	;;hide tray window
+	hide_window("ahk_class Shell_TrayWnd")
+	return
+	
+; #h::	;;send html frame
+	; send_html_frame()
+	; return
+	
 #t::	;;set active window on top
 	set_win_ontop()
 	return
 
-^#up::	;;set active window size to top half screen
-	set_win_pos(0, 0, A_ScreenWidth, A_ScreenHeight/2)
-	return
-
-^#down::	;;set active window size to bottom half screen
-	set_win_pos(0, A_ScreenHeight/2, A_ScreenWidth, A_ScreenHeight/2)
-	return
-
 #up::	;;miximize active window
 	MaximizeWin()
+	return
+	
+#w::	;;launch wifi
+	run,%comspec% /c Wifi_Launcher.cmd
+	return
+#z::
+	window()
 	return
 	
 ^left::     ;;move window left
@@ -111,10 +125,10 @@ pause::
 	return
 
 
-#h::	;;hide tray window
-	hide_window("ahk_class Shell_TrayWnd")
+^t::	;;translate specified English sentences from clipboard
+	Translate_to_clipboard("no")
 	return
-
+	
 #IfWinNotActive	  ahk_class TTOTAL_CMD
 ^d::	;;translate selected sentences
 	translate_to_clipboard()
@@ -131,32 +145,48 @@ Space::		;;exit translate panel
 	}
 	return
 
-^t::	;;translate specified English sentences from clipboard
-	Translate_to_clipboard("no")
+	
+!F3::
+	run, F:\literature	
+	return	
+	
+	
++f::    ;;search baidu engine with clipboard as keyword
+	search_baidu()
+	return	
+	
+
+
+^#up::	;;set active window size to top half screen
+	set_win_pos(0, 0, A_ScreenWidth, A_ScreenHeight/2)
 	return
 
+^#down::	;;set active window size to bottom half screen
+	set_win_pos(0, A_ScreenHeight/2, A_ScreenWidth, A_ScreenHeight/2)
+	return
+
+^!a::	;;dial bras a
+	run, snadial.ahk -v -a
+	hotkey, ^!b, off
+	hotkey, ^!a, off
+	return	
+	
+	
 ^!b::	;;dial bras b
 	run, snadial.ahk -v -b
 	hotkey, ^!b, off
 	hotkey, ^!a, off
 	return
 
-
-^!a::	;;dial bras a
-	run, snadial.ahk -v -a
-	hotkey, ^!b, off
-	hotkey, ^!a, off
+^!n::
+	run notepad
 	return
-
-#w::	;;launch wifi
-	run,%comspec% /c Wifi_Launcher.cmd
+	
+^!o::	;;run path of active program
+	run_program_path()
 	return
+	
 
-
-#f::	;;launch everything.exe
-	;RunProgram("Everything.exe", "D:\Small software\Everything\Everything.exe")
-	run_and_hide("Everything.exe", "D:\Small software\Everything\Everything.exe", "ahk_class EVERYTHING")
-	return
 
 LWin & F1:: 	;;launch youdao dictionary， window hidden
 	hide_window("ahk_class YodaoMainWndClass")
@@ -170,70 +200,6 @@ SHIFT & mButton::	;;get mouse coordinate
 	get_mouse_cood()
 	return
 
-; #h::	;;send html frame
-	; send_html_frame()
-	; return
-
-^!o::	;;run path of active program
-	run_program_path()
-	return
-	
-#g::
-	git_commit()
-	return
-	
-+f::    ;;search baidu engine with clipboard as keyword
-	search_baidu()
-	return
-	
-^!n::
-	run notepad
-	return
-
-!F3::
-	run, F:\literature	
-	return
-
-
-	
-#IfWinActive 按键精灵
-
-F5::
-Dubug_AnJian()
-return
-
-^n::
-create_new()
-return
-
-^+s::
-save_exit()
-return
-
-^m::
-modify_script()
-return
-
-#ifwinactive
-#IfWinActive ahk_class Warcraft III
-
-#r::
-	window()
-	return
-
-q::Numpad7
-
-space::Numpad8
-
-LWin::return
-
-$s::
-	send ,s
-	sleep, 90	
-	return
-	
-#IfWinActive
-
 
 #IfWinActive .*\.(ahk|AHK) - Notepad++
 
@@ -242,6 +208,8 @@ F1::
 	return
 	
 #IfWinActive
+
+
 
 #IfWinActive .*\.(py|ahk|AHK|PY) - Notepad++	
 	
@@ -302,6 +270,44 @@ return
 
 #ifwinactive
 
+	
+#IfWinActive 按键精灵
+
+F5::
+Dubug_AnJian()
+return
+
+^n::
+create_new()
+return
+
+^+s::
+save_exit()
+return
+
+^m::
+modify_script()
+return
+
+#ifwinactive
+
+
+#IfWinActive ahk_class Warcraft III
+
+
+q::Numpad7
+
+space::Numpad8
+
+LWin::return
+
+$s::
+	send ,s
+	sleep, 90	
+	return
+	
+#IfWinActive
+
 
 
 
@@ -348,6 +354,9 @@ return
 ;/////////HotStringHotStringHotStringHotStringHotStringHotStringHotStringHotStringHot
 
 ;FunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunction
+
+;;base function////////////
+
 suspend()
 {
 
@@ -359,7 +368,257 @@ suspend()
 	return
 }
 
-hide_window(ahkclass)
+
+StrPutVar(string, ByRef var, encoding)
+{
+	; 确定容量.
+	VarSetCapacity( var, StrPut(string, encoding)
+		; StrPut 返回字符数, 但 VarSetCapacity 需要字节数.初始化为0
+		* ((encoding="utf-16"||encoding="cp1200") ? 2 : 1), 0)
+	; 复制或转换字符串.
+	return StrPut(string, &var, encoding)
+}
+
+
+StdoutToVar_CreateProcess(sCmd, bStream="", sDir="", sInput="")
+{
+
+bStream=   ; not implemented
+
+
+
+DllCall("CreatePipe","Ptr*",hStdInRd,"Ptr*",hStdInWr,"Uint",0,"Uint",0)
+
+DllCall("CreatePipe","Ptr*",hStdOutRd,"Ptr*",hStdOutWr,"Uint",0,"Uint",0)
+
+DllCall("SetHandleInformation","Ptr",hStdInRd,"Uint",1,"Uint",1)
+
+DllCall("SetHandleInformation","Ptr",hStdOutWr,"Uint",1,"Uint",1)
+
+if A_PtrSize=4
+
+	{
+
+	VarSetCapacity(pi, 16, 0)
+
+	sisize:=VarSetCapacity(si,68,0)
+
+	NumPut(sisize,    si,  0, "UInt")
+
+	NumPut(0x100,     si, 44, "UInt")
+
+	NumPut(hStdInRd , si, 56, "Ptr")
+
+	NumPut(hStdOutWr, si, 60, "Ptr")
+
+	NumPut(hStdOutWr, si, 64, "Ptr")
+
+	}
+
+else if A_PtrSize=8
+
+	{
+
+	VarSetCapacity(pi, 24, 0)
+
+	sisize:=VarSetCapacity(si,96,0)
+
+	NumPut(sisize,    si,  0, "UInt")
+
+	NumPut(0x100,     si, 60, "UInt")
+
+	NumPut(hStdInRd , si, 80, "Ptr")
+
+	NumPut(hStdOutWr, si, 88, "Ptr")
+
+	NumPut(hStdOutWr, si, 96, "Ptr")
+
+	}
+
+
+
+DllCall("CreateProcess", "Uint", 0, "Ptr", &sCmd, "Uint", 0, "Uint", 0, "Int", True, "Uint", 0x08000000, "Uint", 0, "Ptr", sDir ? &sDir : 0, "Ptr", &si, "Ptr", &pi)
+
+DllCall("CloseHandle","Ptr",NumGet(pi,0))
+
+DllCall("CloseHandle","Ptr",NumGet(pi,A_PtrSize))
+
+DllCall("CloseHandle","Ptr",hStdOutWr)
+
+DllCall("CloseHandle","Ptr",hStdInRd)
+
+
+
+If   sInput <>
+
+	FileOpen(hStdInWr, "h", "UTF-8").Write(sInput)
+
+
+
+DllCall("CloseHandle","Ptr",hStdInWr)
+
+
+
+VarSetCapacity(sTemp,4095)
+
+nSize:=0
+
+loop
+
+	{
+
+	result:=DllCall("Kernel32.dll\ReadFile", "Uint", hStdOutRd,  "Ptr", &sTemp, "Uint", 4095,"UintP", nSize,"Uint", 0)
+
+	if (result="0")
+
+		break
+
+	else
+
+		sOutput:= sOutput . StrGet(&sTemp,nSize,"cp936")
+
+	}
+
+
+
+DllCall("CloseHandle","Ptr",hStdOutRd)
+
+Return,sOutput
+
+}
+
+
+UrlEncode(String,CharacterSet="cp0")
+{
+OldFormat := A_FormatInteger
+SetFormat, Integer, H
+Loop, Parse, String
+	{
+	If A_LoopField is Alnum
+		{
+		Out .= A_LoopField
+		Continue
+		}
+
+	If A_LoopField is Space
+		{
+		Out .= "%20"
+		Continue
+		}
+
+
+	If         (CharacterSet="cp0"||CharacterSet="gb2312"||CharacterSet="gbk")
+		Out .= getChr_GBK_Code(A_LoopField)
+	Else
+		Out .= getChr_UTF8_Code(A_LoopField)
+
+	}
+SetFormat, Integer, %OldFormat%
+Return Out
+}
+
+
+getChr_UTF8_Code(UTF16)
+{
+	SetFormat, Integer, H
+	StrPutVar(UTF16,UTF8,"UTF-8")
+	ChrUTF8Code := NumGet(UTF8, 0, "UInt")
+	str := strget(&UTF8, 2, "gbk")
+	StringMid,ch3,ChrUTF8Code,3,2
+	StringMid,ch2,ChrUTF8Code,5,2
+	StringMid,ch1,ChrUTF8Code,7,2
+	ChrUTF8Code := SubStr(ChrUTF8Code, 3 )
+	
+	If(StrLen( ChrUTF8Code)=6)
+	{
+		ChrUTF8Code:="%" . ch1 . "%" . ch2 . "%" . ch3
+	}
+	Else
+		ChrUTF8Code:="%" . ChrUTF8Code
+
+	Return ChrUTF8Code
+}
+
+
+getChr_GBK_Code(UTF16)
+{
+  SetFormat, Integer, H
+  StrPutVar(UTF16, var, "cp0")
+  ChrGBKCode := NumGet(var, 0, "UInt")
+  StringMid,ch2,ChrGBKCode,3,2
+  StringMid,ch1,ChrGBKCode,5,2
+  ChrGBKCode := SubStr(ChrGBKCode, 3 )  
+   If  (StrLen( ChrGBKCode)=4)
+        {
+        ChrGBKCode:= "%" . ch1 . "%" . ch2
+    }
+ If  (StrLen( ChrGBKCode)=2)
+        {
+        ChrGBKCode:= "%" . ch2
+    }
+
+  Return ChrGBKCode
+}
+
+;;base function////////////
+
+
+
+CloseCMD()
+{
+	global CloseState
+	loop
+	{
+		if(CloseState="off")
+			return
+		winget, cnt, count, ahk_class ConsoleWindowClass
+		if (cnt >= 1)
+		{
+			loop %cnt%
+			{
+				winclose, ahk_class ConsoleWindowClass
+			}
+		}
+		sleep, 3000
+	}
+}
+
+is_snadial_run()
+{
+	psvc := ComObjGet("winmgmts:{impersonationLevel=impersonate}!" . "\\.\root\cimv2")
+	penm := psvc.ExecQuery("SELECT * FROM Win32_Process WHERE Name='Autohotkey.exe'")._NewEnum 
+	While penm[pobj]
+	{
+			PID := pobj.ProcessId           ; 获取进程PID
+			CMDLine := pobj.CommandLine    ; 获取进程命令行
+			ifinstring, CMDLine, Snadial.ahk
+			{
+				return true
+			}
+	}
+	return false
+}
+
+
+
+;;window function////////////
+
+get_active_win()
+{
+	winget,ActiveWinId,id,A
+	wingettitle,title,ahk_id %ActiveWinId%
+	traytip,,得到%title%的句柄。。。
+	return ActiveWinId
+}
+
+window()
+{
+	global WM_SYSCOMMAND
+	winget,Cid,id,A
+	winmove, ahk_id %Cid%, , A_ScreenWidth/2-400, A_ScreenHeight/2-300, 800, 600
+}
+
+hide_window(ahkclass)   ;;hide normal window include Shell_TrayWnd and youdao
 {
 	IfWinExist,%ahkclass%
 	{
@@ -394,34 +653,20 @@ hide_window(ahkclass)
 	}
 }
 
-is_chinese(str)
+set_win_ontop()
 {
-	RegExMatch(str, "(*UCP)[^\d\W]+", str)
-	StringLeft, str, str, 1
-	StrPutVar(str, var, "utf-8")
-	number := NumGet(var, 0, "UInt")
-	if(number > 256)
-		return true
-	else
-		return false	
-}
-
-get_active_win()
-{
-	winget,ActiveWinId,id,A
-	wingettitle,title,ahk_id %ActiveWinId%
-	traytip,,得到%title%的句柄。。。
-	return ActiveWinId
-}
-
-MaximizeWin()
-{
-	global WM_SYSCOMMAND
- 	winget,Cid,id,A
-;	WinMinimize, ahk_id %Cid%
-	;WinMaximize, ahk_id %Cid% 
-	sendmessage, WM_SYSCOMMAND, 0x0000F030, 0x0006026A, , ahk_id %Cid%
+	winget,Cid,id,A
 	
+	winset,alwaysontop,,ahk_id %Cid%
+	
+	wingettitle,title,ahk_id %Cid%
+	
+	WinGet, ExStyle, ExStyle,%title%
+	
+	if (ExStyle & 0x8)
+		traytip,,正在设置 %title% 窗口置顶。。。
+	else
+		traytip,,正在取消 %title% 窗口置顶。。。
 	return
 }
 
@@ -472,122 +717,43 @@ move_window(direction, delta)
 	return
 }
 
-set_win_ontop()
-{
-	winget,Cid,id,A
-	
-	winset,alwaysontop,,ahk_id %Cid%
-	
-	wingettitle,title,ahk_id %Cid%
-	
-	WinGet, ExStyle, ExStyle,%title%
-	
-	if (ExStyle & 0x8)
-		traytip,,正在设置 %title% 窗口置顶。。。
-	else
-		traytip,,正在取消 %title% 窗口置顶。。。
-	return
-}
-
 set_win_pos(left, top, width, height)
 {
 	global WM_SYSCOMMAND
 	winget,Cid,id,A
 	;winmove, ahk_id %Cid%, , left, top, width, height
 	DllCall("MoveWindow", "UInt", Cid, "Int", left, "Int", top, "Int", width, "Int", height, "Int", 1)
+	;sendmessage, WM_SYSCOMMAND, 0x0000F122, 0x00120250, , ahk_id %Cid%
+}
+
+MaximizeWin()
+{
+	global WM_SYSCOMMAND
+ 	winget,Cid,id,A
 	sendmessage, WM_SYSCOMMAND, 0x0000F122, 0x00120250, , ahk_id %Cid%
+	sleep, 50
+	sendmessage, WM_SYSCOMMAND, 0x0000F030, 0x0006026A, , ahk_id %Cid%
+;	WinMinimize, ahk_id %Cid%
+	;WinMaximize, ahk_id %Cid% 
+	return
 }
 
+;;window function////////////
 
-show_translate_panel( TanslateStr, width)
+
+
+;;translate function////////////
+
+is_chinese(str)
 {
-	global PanelHwnd
-	Gui, Panel:	New 
-	Gui, Panel:	font, s11, Verdana 
-	Gui, Panel:	Add, Text, -vscroll W%width%, %TanslateStr%
-	Gui, Panel:	-Caption +HwndPanelHwnd +AlwaysOnTop     ;+AlwaysOnTop
-	MouseGetPos, xpos, ypos
-	ypos += 30
-	
-	Gui, Panel: Show, X%xpos% Y%ypos%
-	
-}
-
-
-translate_to_clipboard(IsCopy = "yes")
-{
-	global PanelHwnd
-	
-	if(IsCopy = "yes")
-	{
-		clipboard=
-		sleep,200
-		send,^c
-		clipwait,2
-	}
-	
-	if clipboard=
-	{
-		suspend()
-		sleep, 100
-		send, ^d
-		sleep, 200
-		suspend()
-		return
-	}
-		
-	ifwinexist, ahk_id%PanelHwnd%
-		winclose, ahk_id%PanelHwnd%	
-	
-	str:=clipboard
-	
-	preproccess_string(str)
-	
-	TanslateStr := translate(str)
-	
-	eliminate_unexpected_word(TanslateStr)
-	
-	clipboard := TanslateStr
-		
-	if(is_chinese(TanslateStr))
-		width := strlen(TanslateStr)*15 + 15
+	RegExMatch(str, "(*UCP)[^\d\W]+", str)
+	StringLeft, str, str, 1
+	StrPutVar(str, var, "utf-8")
+	number := NumGet(var, 0, "UInt")
+	if(number > 256)
+		return true
 	else
-		width := strlen(TanslateStr)*8 + 10
-	
-	if(width > 500)
-		width := 500
-	
-	show_translate_panel(TanslateStr, width)
-	OnMessage(0x201, "WM_LBUTTONDOWN")
-	ifwinexist, ahk_id%PanelHwnd%
-	{
-		hotkey, MButton, on
-		hotkey, Space, on
-	}
-	
-}
-
-WM_LBUTTONDOWN()
-{
-	;Drag Gui
-	PostMessage, 0xA1, 2
-}
-
-
-window()
-{
-	winget,Cid,id,A
-	winmove, ahk_id %Cid%, , 0, 0, 800, 600 
-}
-
-StrPutVar(string, ByRef var, encoding)
-{
-    ; 确定容量.
-    VarSetCapacity( var, StrPut(string, encoding)
-        ; StrPut 返回字符数, 但 VarSetCapacity 需要字节数.初始化为0
-        * ((encoding="utf-16"||encoding="cp1200") ? 2 : 1), 0)
-    ; 复制或转换字符串.
-    return StrPut(string, &var, encoding)
+		return false	
 }
 
 preproccess_string(byref str)
@@ -653,20 +819,92 @@ eliminate_unexpected_word(byref TanslateStr)
 	}
 }
 
-is_snadial_run()
+show_translate_panel( TanslateStr, width)
 {
-	psvc := ComObjGet("winmgmts:{impersonationLevel=impersonate}!" . "\\.\root\cimv2")
-	penm := psvc.ExecQuery("SELECT * FROM Win32_Process WHERE Name='Autohotkey.exe'")._NewEnum 
-	While penm[pobj]
+	global PanelHwnd
+	Gui, Panel:	New 
+	Gui, Panel:	font, s11, Verdana 
+	Gui, Panel:	Add, Text, -vscroll W%width%, %TanslateStr%
+	Gui, Panel:	-Caption +HwndPanelHwnd +AlwaysOnTop     ;+AlwaysOnTop
+	MouseGetPos, xpos, ypos
+	ypos += 30
+	
+	Gui, Panel: Show, X%xpos% Y%ypos%
+	
+}
+
+WM_LBUTTONDOWN()
+{
+	;Drag Gui
+	PostMessage, 0xA1, 2
+}
+
+translate_to_clipboard(IsCopy = "yes")
+{
+	global PanelHwnd
+	
+	if(IsCopy = "yes")
 	{
-			PID := pobj.ProcessId           ; 获取进程PID
-			CMDLine := pobj.CommandLine    ; 获取进程命令行
-			ifinstring, CMDLine, Snadial.ahk
-			{
-				return true
-			}
+		clipboard=
+		sleep,200
+		send,^c
+		clipwait,2
 	}
-	return false
+	
+	if clipboard=
+	{
+		suspend()
+		sleep, 100
+		send, ^d
+		sleep, 200
+		suspend()
+		return
+	}
+		
+	ifwinexist, ahk_id%PanelHwnd%
+		winclose, ahk_id%PanelHwnd%	
+	
+	str:=clipboard
+	
+	preproccess_string(str)
+	
+	TanslateStr := translate(str)
+	
+	eliminate_unexpected_word(TanslateStr)
+	
+	clipboard := TanslateStr
+		
+	if(is_chinese(TanslateStr))
+		width := strlen(TanslateStr)*15 + 15
+	else
+		width := strlen(TanslateStr)*8 + 10
+	
+	if(width > 500)
+		width := 500
+	
+	show_translate_panel(TanslateStr, width)
+	OnMessage(0x201, "WM_LBUTTONDOWN")
+	ifwinexist, ahk_id%PanelHwnd%
+	{
+		hotkey, MButton, on
+		hotkey, Space, on
+	}
+	
+}
+
+;;translate function////////////
+
+
+
+;;run program function////////////
+
+
+run_program_path()
+{
+	WinGet, NowFile, ProcessPath, A
+	OpenAndSelect=explorer.exe /select ,"%NowFile%"
+	Run,%OpenAndSelect%
+	return 
 }
 
 RunProgram(Name, path, visible=true)
@@ -699,6 +937,49 @@ RunProgram(Name, path, visible=true)
 	return
 }
 
+run_and_hide(Name, path, className)
+{
+	global WM_COMMAND
+	ifwinexist, %className%
+	{
+		IfWinNotActive, %className%
+		{	
+			winactivate, %className%
+			return
+		}
+	}
+	process, exist, %Name%
+	hWnd := errorlevel
+	
+	if (hWnd != 0)
+	{
+		IfWinExist %className%
+			winhide, %className%
+		else 
+		{
+			if(className="ahk_class EVERYTHING")
+			{
+				detecthiddenwindows, on
+				sendmessage, WM_COMMAND, 0x00009C41,0x00000000, , ahk_class EVERYTHING_TASKBAR_NOTIFICATION
+				detecthiddenwindows, off
+			}
+			else
+			{	
+				winshow, %className%
+				winactivate, %className%
+			}
+		}
+	}
+	else
+	{
+		if(Name="TOTALCMD.EXE")
+			run_totalcmd()
+		else
+			run, %path%
+	}
+	return
+}
+
 RefreshTray() 
 {
    WM_MOUSEMOVE := 0x200
@@ -718,50 +999,44 @@ RefreshTray()
    }
 }
 
-get_mouse_cood()
+open_helpfile(language)
 {
-	mousegetpos, x, y, winname, controlname
-	tooltip, %x% %y%
-	sleep, 1500
-	tooltip,
+	if(language="ahk")
+	{
+		ifwinexist, AutoHotkey 中文帮助
+			winactivate, AutoHotkey 中文帮助
+		else
+			run, C:\Users\lcq\Desktop\HelpFiles\AutoHotkey.chm
+	}
 	return
 }
 
-send_html_frame()
+run_totalcmd()
 {
-html1 =
-(
-<html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html" charset="utf-8">
-		
-)
-
-html2 =
-(
-	</head>
+	run, D:\totalcmd\TOTALCMD.EXE
+	winwait, ahk_class TNASTYNAGSCREEN
+	winwaitactive, ahk_class TNASTYNAGSCREEN
 	
-<body>
+	dm := ComObjCreate("dm.dmsoft")
 	
-</body>
-
-)
-	keywait,LWin
-	send %html1%
-	send {BS 2}
-	send %html2%
-	send {BS}
-	send </html>{up 2}{tab}
-	return
+	RegWinHwnd := dm.FindWindow("TNASTYNAGSCREEN","Total Commander")
+	dm_ret := dm.SetDict(0,"C:\Users\lcq\Desktop\resource\dm_soft.txt")
+	dm.BindWindow(RegWinHwnd,"gdi","normal","normal",0)
+	s := dm.Ocr(229,198,245,215,"000000-c0c0c0",1.0)
+	
+	if(s="1")
+		controlsend, , 1, ahk_class TNASTYNAGSCREEN
+	else if(s="2")
+		controlsend, , 2, ahk_class TNASTYNAGSCREEN
+	else
+		controlsend, , 3, ahk_class TNASTYNAGSCREEN
 }
 
-run_program_path()
-{
-	WinGet, NowFile, ProcessPath, A
-	OpenAndSelect=explorer.exe /select ,"%NowFile%"
-	Run,%OpenAndSelect%
-	return 
-}
+;;run program function////////////
+
+
+
+;;anjian jinglin////////////
 
 Dubug_AnJian()
 {
@@ -799,7 +1074,11 @@ modify_script()
 	SendMessage, WM_COMMAND, 0x0000802A, 0, , ahk_id %NextParentWin%
 }
 
+;;anjian jinglin////////////
 
+
+
+;;Notepad++ function////////////
 
 python_hotkey()
 {
@@ -920,25 +1199,11 @@ python_equal()
 	
 }
 
-CloseCMD()
-{
-	global CloseState
-	loop
-	{
-		if(CloseState="off")
-			return
-		winget, cnt, count, ahk_class ConsoleWindowClass
-		if (cnt >= 1)
-		{
-			loop %cnt%
-			{
-				winclose, ahk_class ConsoleWindowClass
-			}
-		}
-		sleep, 3000
-	}
-}
+;;Notepad++ function////////////
 
+
+
+;;github commit function////////////
 
 git_commit()
 {
@@ -1063,9 +1328,7 @@ comment_gui()
 	Gui, CommentPanel: Show,, Enter your comment
 	return  ; 自动运行段结束. 在用户进行操作前脚本会一直保持空闲状态.
 }
-	
-
-	
+		
 submit_comment()
 {
 	global Comment
@@ -1080,204 +1343,11 @@ submit_comment()
 	return
 }
 
+;;github commit function////////////
 
-StdoutToVar_CreateProcess(sCmd, bStream="", sDir="", sInput="")
-{
 
-   bStream=   ; not implemented
 
-   
-
-   DllCall("CreatePipe","Ptr*",hStdInRd,"Ptr*",hStdInWr,"Uint",0,"Uint",0)
-
-   DllCall("CreatePipe","Ptr*",hStdOutRd,"Ptr*",hStdOutWr,"Uint",0,"Uint",0)
-
-   DllCall("SetHandleInformation","Ptr",hStdInRd,"Uint",1,"Uint",1)
-
-   DllCall("SetHandleInformation","Ptr",hStdOutWr,"Uint",1,"Uint",1)
-
-   if A_PtrSize=4
-
-      {
-
-      VarSetCapacity(pi, 16, 0)
-
-      sisize:=VarSetCapacity(si,68,0)
-
-      NumPut(sisize,    si,  0, "UInt")
-
-      NumPut(0x100,     si, 44, "UInt")
-
-      NumPut(hStdInRd , si, 56, "Ptr")
-
-      NumPut(hStdOutWr, si, 60, "Ptr")
-
-      NumPut(hStdOutWr, si, 64, "Ptr")
-
-      }
-
-   else if A_PtrSize=8
-
-      {
-
-      VarSetCapacity(pi, 24, 0)
-
-      sisize:=VarSetCapacity(si,96,0)
-
-      NumPut(sisize,    si,  0, "UInt")
-
-      NumPut(0x100,     si, 60, "UInt")
-
-      NumPut(hStdInRd , si, 80, "Ptr")
-
-      NumPut(hStdOutWr, si, 88, "Ptr")
-
-      NumPut(hStdOutWr, si, 96, "Ptr")
-
-      }
-
-
-
-   DllCall("CreateProcess", "Uint", 0, "Ptr", &sCmd, "Uint", 0, "Uint", 0, "Int", True, "Uint", 0x08000000, "Uint", 0, "Ptr", sDir ? &sDir : 0, "Ptr", &si, "Ptr", &pi)
-
-   DllCall("CloseHandle","Ptr",NumGet(pi,0))
-
-   DllCall("CloseHandle","Ptr",NumGet(pi,A_PtrSize))
-
-   DllCall("CloseHandle","Ptr",hStdOutWr)
-
-   DllCall("CloseHandle","Ptr",hStdInRd)
-
-   
-
-   If   sInput <>
-
-      FileOpen(hStdInWr, "h", "UTF-8").Write(sInput)
-
-   
-
-   DllCall("CloseHandle","Ptr",hStdInWr)
-
-
-
-   VarSetCapacity(sTemp,4095)
-
-   nSize:=0
-
-   loop
-
-      {
-
-      result:=DllCall("Kernel32.dll\ReadFile", "Uint", hStdOutRd,  "Ptr", &sTemp, "Uint", 4095,"UintP", nSize,"Uint", 0)
-
-      if (result="0")
-
-         break
-
-      else
-
-         sOutput:= sOutput . StrGet(&sTemp,nSize,"cp936")
-
-      }
-
-
-
-   DllCall("CloseHandle","Ptr",hStdOutRd)
-
-   Return,sOutput
-
-}
-
-search_baidu()
-{	
-	Oldclipboard := clipboard
-	clipboard=
-	sleep,200
-	send,^c
-	clipwait,2
-	ie := ComObjCreate("InternetExplorer.Application")
-	ie.Visible := true  ; 已知这个语句在 IE7 上无法正常执行.
-	url := "http://www.baidu.com/s?word=" . UrlEncode(clipboard)
-	ie.Navigate(url)
-	while ie.Busy
-		sleep, 100
-	while ie.document.readystate!="complete"
-		sleep,100
-	clipboard := Oldclipboard
-}
-
-UrlEncode(String,CharacterSet="cp0")
-{
-  OldFormat := A_FormatInteger
-  SetFormat, Integer, H
-  Loop, Parse, String
-    {
-      If A_LoopField is Alnum
-        {
-          Out .= A_LoopField
-          Continue
-        }
-
-      If A_LoopField is Space
-        {
-          Out .= "%20"
-          Continue
-        }
-
-
-      If         (CharacterSet="cp0"||CharacterSet="gb2312"||CharacterSet="gbk")
-          Out .= getChr_GBK_Code(A_LoopField)
-      Else
-          Out .= getChr_UTF8_Code(A_LoopField)
-
-    }
-  SetFormat, Integer, %OldFormat%
-  Return Out
-}
-
-
-getChr_UTF8_Code(UTF16){
-    SetFormat, Integer, H
-    StrPutVar(UTF16,UTF8,"UTF-8")
-    ChrUTF8Code := NumGet(UTF8, 0, "UInt")
-	str := strget(&UTF8, 2, "gbk")
-    StringMid,ch3,ChrUTF8Code,3,2
-    StringMid,ch2,ChrUTF8Code,5,2
-    StringMid,ch1,ChrUTF8Code,7,2
-    ChrUTF8Code := SubStr(ChrUTF8Code, 3 )
-	
-    If(StrLen( ChrUTF8Code)=6)
-    {
-		ChrUTF8Code:="%" . ch1 . "%" . ch2 . "%" . ch3
-    }
-    Else
-		ChrUTF8Code:="%" . ChrUTF8Code
- 
-    Return ChrUTF8Code
-}
-
-getChr_GBK_Code(UTF16)
-{
-  SetFormat, Integer, H
-  StrPutVar(UTF16, var, "cp0")
-  ChrGBKCode := NumGet(var, 0, "UInt")
-  StringMid,ch2,ChrGBKCode,3,2
-  StringMid,ch1,ChrGBKCode,5,2
-  ChrGBKCode := SubStr(ChrGBKCode, 3 )  ;  ԫ StringReplace, Hex, Hex, 0x,,All  ͬmìܴȥԽ0x
-   If  (StrLen( ChrGBKCode)=4)
-        {
-        ChrGBKCode:= "%" . ch1 . "%" . ch2
-  ;~                   MsgBox,%UTF16%,%ChrGBKCode%
-    }
- If  (StrLen( ChrGBKCode)=2)
-        {
-        ChrGBKCode:= "%" . ch2
-  ;~                   MsgBox,%UTF16%,%ChrGBKCode%
-    }
-
-  Return ChrGBKCode
-}
-
+;;adobe acrobat function////////////
 
 click_pic(picRoute)
 {
@@ -1289,90 +1359,83 @@ click_pic(picRoute)
 	MouseMove, %orinx%, %oriny%
 }
 
-open_helpfile(language)
-{
-	if(language="ahk")
-	{
-		ifwinexist, AutoHotkey 中文帮助
-			winactivate, AutoHotkey 中文帮助
-		else
-			run, C:\Users\lcq\Desktop\HelpFiles\AutoHotkey.chm
+;;adobe acrobat function////////////
+
+
+
+;;clipboard function////////////
+
+	search_baidu()
+	{	
+		Oldclipboard := clipboard
+		clipboard=
+		sleep,200
+		send,^c
+		clipwait,2
+		ie := ComObjCreate("InternetExplorer.Application")
+		ie.Visible := true  ; 已知这个语句在 IE7 上无法正常执行.
+		url := "http://www.baidu.com/s?word=" . UrlEncode(clipboard)
+		ie.Navigate(url)
+		while ie.Busy
+			sleep, 100
+		while ie.document.readystate!="complete"
+			sleep,100
+		clipboard := Oldclipboard
 	}
+	
+	
+	remove_endline()
+	{
+		clipboard=
+		sleep,200
+		send,^c
+		clipwait,2
+		StringReplace, clipboard, clipboard, `r`n, %A_SPACE%, All
+	}
+
+;;clipboard function////////////
+
+
+
+;;function uncommon uesed////////////
+
+get_mouse_cood()
+{
+	mousegetpos, x, y, winname, controlname
+	tooltip, %x% %y%
+	sleep, 1500
+	tooltip,
 	return
 }
 
-run_totalcmd()
+send_html_frame()
 {
-	run, D:\totalcmd\TOTALCMD.EXE
-	winwait, ahk_class TNASTYNAGSCREEN
-	winwaitactive, ahk_class TNASTYNAGSCREEN
-	
-	dm := ComObjCreate("dm.dmsoft")
-	
-	RegWinHwnd := dm.FindWindow("TNASTYNAGSCREEN","Total Commander")
-	dm_ret := dm.SetDict(0,"C:\Users\lcq\Desktop\resource\dm_soft.txt")
-	dm.BindWindow(RegWinHwnd,"gdi","normal","normal",0)
-	s := dm.Ocr(229,198,245,215,"000000-c0c0c0",1.0)
-	
-	if(s="1")
-		controlsend, , 1, ahk_class TNASTYNAGSCREEN
-	else if(s="2")
-		controlsend, , 2, ahk_class TNASTYNAGSCREEN
-	else
-		controlsend, , 3, ahk_class TNASTYNAGSCREEN
-}
+html1 =
+(
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+		
+)
 
-run_and_hide(Name, path, className)
-{
-	global WM_COMMAND
-	ifwinexist, %className%
-	{
-		IfWinNotActive, %className%
-		{	
-			winactivate, %className%
-			return
-		}
-	}
-	process, exist, %Name%
-	hWnd := errorlevel
+html2 =
+(
+	</head>
 	
-	if (hWnd != 0)
-	{
-		IfWinExist %className%
-			winhide, %className%
-		else 
-		{
-			if(className="ahk_class EVERYTHING")
-			{
-				detecthiddenwindows, on
-				sendmessage, WM_COMMAND, 0x00009C41,0x00000000, , ahk_class EVERYTHING_TASKBAR_NOTIFICATION
-				detecthiddenwindows, off
-			}
-			else
-			{	
-				winshow, %className%
-				winactivate, %className%
-			}
-		}
-	}
-	else
-	{
-		if(Name="TOTALCMD.EXE")
-			run_totalcmd()
-		else
-			run, %path%
-	}
+<body>
+	
+</body>
+
+)
+	keywait,LWin
+	send %html1%
+	send {BS 2}
+	send %html2%
+	send {BS}
+	send </html>{up 2}{tab}
 	return
 }
 
-remove_endline()
-{
-	clipboard=
-	sleep,200
-	send,^c
-	clipwait,2
-	StringReplace, clipboard, clipboard, `r`n, %A_SPACE%, All
-}
-
+;;function uncommon uesed////////////
 ;////////FunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunction
 
