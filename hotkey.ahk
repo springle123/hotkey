@@ -2,6 +2,8 @@
 
 #include  <message> 		;;包含Messge库
 
+#include  <ScreenCapture>   ;;包含ScreenCapture.ahk
+
 SetBatchlines -1              ;;全速运行
 
 SetTitleMatchMode,RegEx       ;;窗口匹配方式为正则匹配
@@ -31,6 +33,8 @@ PanelHwnd := ""				  ;;初始化翻译界面句柄
 GithubFolder := "F:\GitCode"  ;;Github目录
 
 Comment :=					  ;;初始化Comment
+
+picNum := 0                   ;;初始化PICNUM
 
 if(is_snadial_run())
 {
@@ -124,11 +128,11 @@ pause::
 	move_window("down", Ydelta)
 	return
 
-
+;;翻译快捷键//////////////////////	
 ^t::	;;translate specified English sentences from clipboard
 	Translate_to_clipboard("no")
 	return
-	
+
 #IfWinNotActive	  ahk_class TTOTAL_CMD
 ^d::	;;translate selected sentences
 	translate_to_clipboard()
@@ -144,7 +148,7 @@ Space::		;;exit translate panel
 		hotkey, Space, off
 	}
 	return
-
+;;翻译快捷键//////////////////////	
 	
 !F3::
 	run, F:\literature	
@@ -185,9 +189,24 @@ Space::		;;exit translate panel
 ^!o::	;;run path of active program
 	run_program_path()
 	return
+
+;;截图快捷键//////////////	
+^!LButton::
+	CaptureGUI()
+	Return
 	
+#ifwinactive ahk_class AutoHotkeyGUI, >>>>截取屏幕
 
+enter::
+	CaptureImage()
+	return
 
+ESC::
+	Gui, captureRect:  destroy
+	
+#ifwinactive
+;;截图快捷键//////////////
+	
 LWin & F1:: 	;;launch youdao dictionary， window hidden
 	hide_window("ahk_class YodaoMainWndClass")
 	return
@@ -1394,6 +1413,68 @@ click_pic(picRoute)
 	}
 
 ;;clipboard function////////////
+
+
+
+;;captureScreen function////////////
+
+CaptureGUI()
+{
+	CoordMode, Mouse, Screen
+	MouseGetPos, startX, startY 
+	while(GetKeyState("LCONTROL",P)=1 && GetKeyState("LALT",P)=1)
+	{
+		Sleep,10
+		KeyIsDown := GetKeyState("LCONTROL")
+		if (KeyIsDown = 0)
+		{
+			;traytip,, %pxpos% %nxpos% %xpos% %pypos% %nypos% %ypos%
+			;Getfont(%pxpos%,%pypos%,%xpos%,%ypos%)
+			MouseGetPos, endX, endY
+			width = % endX - startX
+			height = % endY - startY
+			Gui, captureRect:    +LastFound +AlwaysOnTop
+			Gui, captureRect:    Color, EEAA99
+			WinSet, Transparent, 150
+			Gui, captureRect:    Font, s10 
+			Gui, captureRect:    Add, Text, Cblue, >>>>截取屏幕
+			Gui, captureRect:    -Caption 
+			Gui, captureRect:    Show, x%startX% y%startY% h%height% w%width%
+			sleep, 100
+			OnMessage(0x201, "WM_LBUTTONDOWN")   
+			return
+		}
+		MouseGetPos, xpos, ypos
+		nxpos = % xpos - startX
+		nypos = % ypos - startY
+		Gui, captureRect:    +LastFound +AlwaysOnTop 
+		Gui, captureRect:    Color, EEAA99
+		WinSet, Transparent, 150
+		Gui, captureRect:    Font, s10 
+		Gui, captureRect:    Add, Text, Cblue, >>>>截取屏幕
+		Gui, captureRect:    -Caption 
+		Gui, captureRect:    Show, x%startX% y%startY% h%nypos% w%nxpos% 
+		OnMessage(0x201, "WM_LBUTTONDOWN") 
+          
+	}
+}
+    
+CaptureImage()
+{
+	global picNum
+	wingetpos,  GUI_X, GUI_Y, GUI_Width, GUI_Height, ahk_class AutoHotkeyGUI, >>>>截取屏幕
+    Gui, captureRect:    hide
+    sleep,100
+	endPointX := GUI_X + GUI_Width
+	endPointY := GUI_Y + GUI_Height
+	rect=%GUI_X%, %GUI_Y%, %endPointX%, %endPointY%
+    path := A_ScriptDir . "\" . picNum . ".bmp"
+    picNum++
+    CaptureScreen(rect, False, path)
+    return
+}
+
+;;captureScreen function////////////
 
 
 
