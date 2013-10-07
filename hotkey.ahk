@@ -280,6 +280,8 @@ $,::
 #ifwinactive ahk_class AcrobatSDIWindow
 +s::
 click_pic("C:\Users\lcq\Desktop\resource\pdfpic\select.bmp")
+ifwinexist, ahk_class AVL_AVFloating
+	winhide, ahk_class AVL_AVFloating
 return
 
 +h::
@@ -623,7 +625,7 @@ translate(byref str)
 	
 	url := "http://translate.google.com/"
 	
-	WebRequest := ComObjCreate("Microsoft.XMLHTTP")
+	static WebRequest := ComObjCreate("Microsoft.XMLHTTP")
 	WebRequest.Open("POST", url,False)
 	WebRequest.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=UTF-8")
 	WebRequest.setRequestHeader("Connection","keep-alive")
