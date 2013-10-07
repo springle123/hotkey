@@ -1458,7 +1458,7 @@ CaptureGUI()
           
 	}
 }
-    
+  
 CaptureImage()
 {
 	global picNum
