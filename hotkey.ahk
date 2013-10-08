@@ -182,12 +182,16 @@ Space::		;;exit translate panel
 	hotkey, ^!a, off
 	return
 
-^!n::   ;;run notepad
+^!n::   
 	run notepad
 	return
 	
 ^!o::	;;run path of active program
 	run_program_path()
+	return
+	
+^!w::	;;login seu-wlan
+	login_seu_wlan()
 	return
 
 ;;截图快捷键//////////////	
@@ -583,6 +587,8 @@ getChr_GBK_Code(UTF16)
 
 
 
+;;start run function////////////
+
 CloseCMD()
 {
 	global CloseState
@@ -617,6 +623,8 @@ is_snadial_run()
 	}
 	return false
 }
+
+;;start run function////////////
 
 
 
@@ -1055,48 +1063,6 @@ run_totalcmd()
 
 
 
-;;anjian jinglin////////////
-
-Dubug_AnJian()
-{
-	global WM_COMMAND
-	winget, Cid, id, A
-	SendMessage, WM_COMMAND, 0x000080E5, 0, , ahk_id %Cid%
-}
-
-create_new()
-{
-
-	global WM_COMMAND
-	winget, Cid, id, A
-	ControlGet, OutputHwnd, Hwnd,,SysListView322, ahk_id %Cid%
-	FirParentWin:= DllCall("GetParent", "uint", OutputHwnd) 
-	NextParentWin:= DllCall("GetParent", "uint", FirParentWin) 
-	SendMessage, WM_COMMAND, 0x00008029, 0, , ahk_id %NextParentWin%
-}
-
-save_exit()
-{
-	global WM_COMMAND
-	winget, Cid, id, A
-	SendMessage, WM_COMMAND, 0x000080DB, 0, , ahk_id %Cid%
-}
-
-modify_script()
-{
-
-	global WM_COMMAND
-	winget, Cid, id, A
-	ControlGet, OutputHwnd, Hwnd,,SysListView322, ahk_id %Cid%
-	FirParentWin:= DllCall("GetParent", "uint", OutputHwnd) 
-	NextParentWin:= DllCall("GetParent", "uint", FirParentWin) 
-	SendMessage, WM_COMMAND, 0x0000802A, 0, , ahk_id %NextParentWin%
-}
-
-;;anjian jinglin////////////
-
-
-
 ;;Notepad++ function////////////
 
 python_hotkey()
@@ -1478,6 +1444,95 @@ CaptureImage()
 
 
 
+;;login seu-wlan function////////////
+
+Connect_seu_wlan()
+{
+	isSeuWebExist := instr(StdoutToVar_CreateProcess("netsh wlan show networks"), "seu-wlan")
+	if(!isSeuWebExist)
+	{
+		msgbox, 此区域未找到seu-wlan网络，请确认已开启无线，并核实seu-wlan网络存在。
+		return 0
+	}
+	isWlanConnect := instr(StdoutToVar_CreateProcess("netsh wlan show interface"), "seu-wlan")
+	if(!isWlanConnect)
+	{
+		profiles := StdoutToVar_CreateProcess("netsh wlan show profiles")
+		
+		ifinstring, profiles, seu-wlan
+			result := StdoutToVar_CreateProcess("netsh wlan connect name=seu-wlan ssid=seu-wlan")
+		else
+		{
+			result := StdoutToVar_CreateProcess("netsh wlan add profile filename=""D:\Program Files\seu_dial\seu-wlan.xml""")
+			;msgbox, %result%
+			sleep, 50
+			result := StdoutToVar_CreateProcess("netsh wlan connect name=seu-wlan ssid=seu-wlan")
+		}
+		
+		ifinstring, result, 成功
+			traytip, , 成功连接seu_wlan...
+	}
+	return 1
+}
+
+login_webseu(username, password)
+{
+
+	postdata := "username=" . username . "&password=" . password
+	WebRequest := ComObjCreate("Microsoft.XMLHTTP")
+	WebRequest.Open("POST", "https://w.seu.edu.cn/portal/login.php",False)
+	WebRequest.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=UTF-8")
+	WebRequest.setRequestHeader("Content-Length", StrLen(postdata))
+	WebRequest.Send(postdata)
+	result := WebRequest.ResponseText
+	;fileappend, %result%, test.txt
+	ifinstring, result, success
+		traytip, , 已成功登录seu_wlan...	
+	else ifinstring, result, \u60a8\u7684Web\u8ba4\u8bc1\u670d\u52a1\u5df2\u8d85\u671f
+		{
+			msgbox, web认证提示已超期，请进行充值!
+			return 0
+		}
+		else ifinstring, result, \u60a8\u5c1a\u672a\u5f00\u901aWeb\u8ba4\u8bc1\u670d\u52a1\
+			{
+				msgbox, web认证提示服务未开通，请确认您已开通Web认证服务，并核对您的一卡通号及密码!
+				return 0
+			}
+	
+	return 1
+}
+
+login_seu_wlan()
+{
+	IfNotExist, D:\Program Files\seu_dial
+		FileCreateDir, D:\Program Files\seu_dial
+	
+	IfNotExist, D:\Program Files\seu_dial\seu-wlan.xml
+		fileinstall, C:\Users\lcq\Desktop\resource\seu-wlan.xml, D:\Program Files\seu_dial\seu-wlan.xml, 1
+	
+	Connect_seu_wlan()
+	
+	loop 8
+	{
+		if(a_index=10)
+		{
+			msgbox,16, , ERROR_LOGIN_SEU %ERROR_LOGIN_SEU%
+			exitapp
+		}
+		try login_webseu("220132840", "264914")
+		catch e
+		{
+			sleep, 500
+			continue
+		}
+		break
+	}
+}
+
+;;login seu-wlan function////////////
+
+
+
 ;;function uncommon uesed////////////
 
 get_mouse_cood()
@@ -1518,5 +1573,50 @@ html2 =
 }
 
 ;;function uncommon uesed////////////
+
+
+
+;;anjian jinglin////////////
+
+Dubug_AnJian()
+{
+	global WM_COMMAND
+	winget, Cid, id, A
+	SendMessage, WM_COMMAND, 0x000080E5, 0, , ahk_id %Cid%
+}
+
+create_new()
+{
+
+	global WM_COMMAND
+	winget, Cid, id, A
+	ControlGet, OutputHwnd, Hwnd,,SysListView322, ahk_id %Cid%
+	FirParentWin:= DllCall("GetParent", "uint", OutputHwnd) 
+	NextParentWin:= DllCall("GetParent", "uint", FirParentWin) 
+	SendMessage, WM_COMMAND, 0x00008029, 0, , ahk_id %NextParentWin%
+}
+
+save_exit()
+{
+	global WM_COMMAND
+	winget, Cid, id, A
+	SendMessage, WM_COMMAND, 0x000080DB, 0, , ahk_id %Cid%
+}
+
+modify_script()
+{
+
+	global WM_COMMAND
+	winget, Cid, id, A
+	ControlGet, OutputHwnd, Hwnd,,SysListView322, ahk_id %Cid%
+	FirParentWin:= DllCall("GetParent", "uint", OutputHwnd) 
+	NextParentWin:= DllCall("GetParent", "uint", FirParentWin) 
+	SendMessage, WM_COMMAND, 0x0000802A, 0, , ahk_id %NextParentWin%
+}
+
+;;anjian jinglin////////////
+
+
+
 ;////////FunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunction
 
