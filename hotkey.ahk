@@ -634,7 +634,7 @@ get_active_win()
 {
 	winget,ActiveWinId,id,A
 	wingettitle,title,ahk_id %ActiveWinId%
-	traytip,,得到%title%的句柄。。。
+	;traytip,,得到%title%的句柄。。。
 	return ActiveWinId
 }
 
@@ -1336,12 +1336,15 @@ submit_comment()
 
 click_pic(picRoute)
 {
+	CoordMode,Pixel|Mouse, Window
 	MouseGetPos,orinx,oriny 
 	imagesearch, intx, inty, 0, 0, 1366, 768, *10 %picRoute%
 	intx += 5
 	inty += 5
-	click %intx% %inty%
-	MouseMove, %orinx%, %oriny%
+	winget,winid,id,A
+	SetControlDelay -1
+	ControlClick, x%intx% y%inty%, ahk_id %winid%,,,, NA
+	CoordMode,Pixel|Mouse, Screen
 }
 
 ;;adobe acrobat function////////////
