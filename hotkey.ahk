@@ -34,21 +34,16 @@ GithubFolder := "F:\GitCode"  ;;Github目录
 
 Comment :=					  ;;初始化Comment
 
-picNum := 0                   ;;初始化PICNUM
-
 if(is_snadial_run())
-{
-	hotkey, ^!b, off
-	hotkey, ^!a, off
-}
+	dial_hotkey_off()
 
 
 
-loop	
-	{
-		CloseCMD()
-		sleep, 3000
-	}
+; loop	
+	; {
+		; CloseCMD()
+		; sleep, 3000
+	; }
 			
 
 return
@@ -129,9 +124,9 @@ pause::
 	return
 
 ;;翻译快捷键//////////////////////	
-^t::	;;translate specified English sentences from clipboard
-	Translate_to_clipboard("no")
-	return
+;^t::	
+	;Translate_to_clipboard("no")
+	;return
 
 #IfWinNotActive	  ahk_class TTOTAL_CMD
 ^d::	;;translate selected sentences
@@ -152,8 +147,11 @@ Space::		;;exit translate panel
 	
 !F3::
 	run, F:\literature	
-	return	
+	return
 	
++c::
+	remove_endline()
+	return	
 	
 +f::    ;;search baidu engine with clipboard as keyword
 	search_baidu()
@@ -171,15 +169,23 @@ Space::		;;exit translate panel
 
 ^!a::	;;dial bras a
 	run, snadial.ahk -v -a
-	hotkey, ^!b, off
-	hotkey, ^!a, off
+	dial_hotkey_off()
 	return	
 	
 	
 ^!b::	;;dial bras b
 	run, snadial.ahk -v -b
-	hotkey, ^!b, off
-	hotkey, ^!a, off
+	dial_hotkey_off()
+	return
+	
+^+a::
+	run, snadial.ahk -s -a
+	dial_hotkey_off()
+	return
+
+^+b::
+	run, snadial.ahk -s -b
+	dial_hotkey_off()
 	return
 
 ^!n::   
@@ -207,7 +213,23 @@ enter::
 
 ESC::
 	Gui, captureRect:  destroy
+	return
 	
+left::
+	move_window("left", -1) 
+	return
+
+right::
+	move_window("left", 1)
+	return
+	
+up::
+	move_window("up", -1) 
+	return
+	
+down::
+	move_window("down", 1)
+	return
 #ifwinactive
 ;;截图快捷键//////////////
 	
@@ -230,6 +252,14 @@ F1::
 	open_helpfile("ahk")
 	return
 	
+#IfWinActive
+
+
+#IfWinActive .*\.(py|PY) - Notepad++
+F1::
+	open_helpfile("py")
+	return
+
 #IfWinActive
 
 
@@ -286,9 +316,7 @@ return
 +u::
 click_pic("C:\Users\lcq\Desktop\resource\pdfpic\underline.bmp")
 
-+c::
-	remove_endline()
-	return
+
 return
 
 #ifwinactive
@@ -391,6 +419,13 @@ suspend()
 	return
 }
 
+copy_to_clip()
+{
+	clipboard=
+	sleep,200
+	send,^c
+	clipwait,1
+}
 
 StrPutVar(string, ByRef var, encoding)
 {
@@ -583,6 +618,14 @@ getChr_GBK_Code(UTF16)
   Return ChrGBKCode
 }
 
+dial_hotkey_off()
+{
+	hotkey, ^!b, off
+	hotkey, ^!a, off
+	hotkey, ^+a, off
+	hotkey, ^+b, off
+}
+
 ;;base function////////////
 
 
@@ -771,6 +814,8 @@ MaximizeWin()
 
 ;;translate function////////////
 
+
+
 is_chinese(str)
 {
 	RegExMatch(str, "(*UCP)[^\d\W]+", str)
@@ -786,29 +831,30 @@ is_chinese(str)
 preproccess_string(byref str)
 {
 	
-	; if(RegExMatch(str, "(-\r\n\d{2,3})|(-\s\d{2,3}\r\n)"))
-	; {
-		; str := RegExReplace(str, "\s\d{2,3}(?=\r\n)", "")
-		; str := RegExReplace(str, "(?<=\r\n)\d{2,3}\s", "")
-		; StringReplace, str, str, `r`n, , All 
-		; StringReplace, str, str, -, , All
-	; }
-	; else
-	; {
-		; str := RegExReplace(str, "\s\d{2,3}(?=\r\n)", "")
-		; str := RegExReplace(str, "(?<=\r\n)\d{2,3}\s", "")
-		; StringReplace, str, str, `r`n, %A_SPACE%, All   ;;复制文字后去掉剪切板中的换行符
-	; }
-	StringReplace, str, str, `r`n, %A_SPACE%, All   ;;复制文字后去掉剪切板中的换行符
-	ifinstring, str, Read more: http
+	if(RegExMatch(str, "(-\r\n\d{2,3})|(-\s\d{2,3}\r\n)"))
 	{
-		str := RegExReplace(str, "Read more: http.*", "") 
+		str := RegExReplace(str, "\s\d{2,3}(?=\r\n)", "")
+		str := RegExReplace(str, "(?<=\r\n)\d{2,3}\s", "")
+		StringReplace, str, str, `r`n, , All 
+		StringReplace, str, str, -, , All
 	}
+	else
+	{
+		str := RegExReplace(str, "\s\d{2,3}(?=\r\n)", "")
+		str := RegExReplace(str, "(?<=\r\n)\d{2,3}\s", "")
+		StringReplace, str, str, `r`n, %A_SPACE%, All   ;;复制文字后去掉剪切板中的换行符
+	}
+	; StringReplace, str, str, `r`n, %A_SPACE%, All   ;;复制文字后去掉剪切板中的换行符
+	; ifinstring, str, Read more: http
+	; {
+		; str := RegExReplace(str, "Read more: http.*", "") 
+	; }
+	return str
 }
 
 translate(byref str)
 {
-	
+	;msgbox, %str%
 	if(is_chinese(str))
 		POSTData := "hl=en&sl=zh-CN&ie=utf-8&tl=en&text="
 	else
@@ -819,39 +865,89 @@ translate(byref str)
 	url := "http://translate.google.com/"
 	
 	static WebRequest := ComObjCreate("Microsoft.XMLHTTP")
-	WebRequest.Open("POST", url,False)
+	; WebRequest.Open("POST", url,False)
+	
+	WebRequest.Open("POST", url,true)
 	WebRequest.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=UTF-8")
 	WebRequest.setRequestHeader("Connection","keep-alive")
 	WebRequest.setRequestHeader("Host","translate.google.cn")
-	WebRequest.setRequestHeader("Content-Length", StrLen(POSTData))
+	WebRequest.setRequestHeader("Content-Length", StrLen(POSTData))	
 	WebRequest.Send(POSTData)
+
+	;result := WebRequest.ResponseText
 	
-	result := WebRequest.ResponseText
+	while(WebRequest.ReadyState != 4)
+	{
+		sleep,100
+		if(a_index>200)
+		{
+			TranslateStr := "获取数据超时...请再试一次!"
+			return TranslateStr
+		}
+	}
+	if WebRequest.ResponseText
+		result := WebRequest.ResponseText
+	else
+	{
+		TranslateStr:="数据为空，请确认已选择文本并检查网络连接。。。"
+		return TranslateStr
+	}
 	RegExMatch(result, "TRANSLATED_TEXT='(.*)';INPUT_TOOL_PATH=", SubPat)  
-	TanslateStr := SubPat1 
-	return TanslateStr
+	TranslateStr := SubPat1 
+	return TranslateStr
 }
 
-eliminate_unexpected_word(byref TanslateStr)
+translate_get(byref str)
+{
+	url:= "http://translate.google.cn/translate_a/t?client=t&sl=en&tl=zh-CN&hl=en&sc=2&ie=UTF-8&oe=UTF-8&q="
+	url .= str
+	static WebRequest := ComObjCreate("Microsoft.XMLHTTP")
+	WebRequest.Open("GET", url,true)
+	;WebRequest.Open("GET", url,false)
+	WebRequest.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=UTF-8")
+	WebRequest.setRequestHeader("Connection","keep-alive")
+	WebRequest.setRequestHeader("Host","translate.google.cn")
+	WebRequest.setRequestHeader("Content-Length", StrLen(POSTData))	
+	WebRequest.Send(POSTData)
+	
+	
+	while(WebRequest.ReadyState != 4)
+	{
+		sleep,100
+		if(a_index>200)
+		{
+			TranslateStr := "获取数据超时...请再试一次!"
+			return TranslateStr
+		}
+	}
+	result := WebRequest.ResponseText
+	;msgbox, %result%
+	RegExMatch(result, "\[\[\[""(.*?)""", SubPat)
+	TranslateStr := SubPat1
+	return TranslateStr
+	
+}
+
+eliminate_unexpected_word(byref TranslateStr)
 {
 	loop
 	{
-		if(RegExMatch(TanslateStr, "\\x26quot;(.*)\\x26quot;" ,OutPutVar))
+		if(RegExMatch(TranslateStr, "\\x26quot;(.*)\\x26quot;" ,OutPutVar))
 		{
 			strQuote = "%OutPutVar1%"
-			TanslateStr := RegExReplace(TanslateStr, "\\x26quot;(.*)\\x26quot;", strQuote)
+			TranslateStr := RegExReplace(TranslateStr, "\\x26quot;(.*)\\x26quot;", strQuote)
 		}
 		else
 			break
 	}
 }
 
-show_translate_panel( TanslateStr, width)
+show_translate_panel( TranslateStr, width)
 {
 	global PanelHwnd
 	Gui, Panel:	New 
 	Gui, Panel:	font, s11, Verdana 
-	Gui, Panel:	Add, Text, -vscroll W%width%, %TanslateStr%
+	Gui, Panel:	Add, Text, -vscroll W%width%, %TranslateStr%
 	Gui, Panel:	-Caption +HwndPanelHwnd +AlwaysOnTop     ;+AlwaysOnTop
 	MouseGetPos, xpos, ypos
 	ypos += 30
@@ -872,10 +968,7 @@ translate_to_clipboard(IsCopy = "yes")
 	
 	if(IsCopy = "yes")
 	{
-		clipboard=
-		sleep,200
-		send,^c
-		clipwait,2
+		copy_to_clip()
 	}
 	
 	if clipboard=
@@ -894,22 +987,21 @@ translate_to_clipboard(IsCopy = "yes")
 	str:=clipboard
 	
 	preproccess_string(str)
+	;TranslateStr := translate_get(str)
+	TranslateStr := translate(str)
+	eliminate_unexpected_word(TranslateStr)
 	
-	TanslateStr := translate(str)
-	
-	eliminate_unexpected_word(TanslateStr)
-	
-	clipboard := TanslateStr
+	clipboard := TranslateStr
 		
-	if(is_chinese(TanslateStr))
-		width := strlen(TanslateStr)*15 + 15
+	if(is_chinese(TranslateStr))
+		width := strlen(TranslateStr)*15 + 15
 	else
-		width := strlen(TanslateStr)*8 + 10
+		width := strlen(TranslateStr)*8 + 10
 	
 	if(width > 500)
 		width := 500
 	
-	show_translate_panel(TanslateStr, width)
+	show_translate_panel(TranslateStr, width)
 	OnMessage(0x201, "WM_LBUTTONDOWN")
 	ifwinexist, ahk_id%PanelHwnd%
 	{
@@ -918,6 +1010,8 @@ translate_to_clipboard(IsCopy = "yes")
 	}
 	
 }
+
+
 
 ;;translate function////////////
 
@@ -1034,6 +1128,13 @@ open_helpfile(language)
 			winactivate, AutoHotkey 中文帮助
 		else
 			run, C:\Users\lcq\Desktop\HelpFiles\AutoHotkey.chm
+	}
+	if(language="py")
+	{
+		ifwinexist, Python v2.7.4 documentation
+			winactivate, Python v2.7.4 documentation
+		else
+			run, C:\Users\lcq\Desktop\HelpFiles\python274.chm
 	}
 	return
 }
@@ -1195,16 +1296,16 @@ git_commit()
 	global Comment, GithubFolder 
 	WinGetTitle, title, ahk_class Notepad++
 	StringTrimRight, filePath, title, 12
+	RegExMatch(title,".*(?=\s-)",filePath)
 	RegExMatch(title, "U)[^\\]*(?=\s)", fileName)
-	RegExMatch(filePath, "\..*\b", fileType)
+	RegExMatch(fileName, "\..*\b", fileType)
 	StringTrimLeft, fileType, fileType, 1, 1
-	
+	msgbox, %filePath%
 	if(fileType = "ahk" || fileType = "AHK")
 	{
 		RegExMatch(filePath, "(\\[^\\]*)\.(ahk|AHK)", subpat)
 		folder := GithubFolder . "\ahk"
 		folder .= subpat1
-		;msgbox, %folder%
 	}
 	else
 	{
@@ -1353,33 +1454,33 @@ click_pic(picRoute)
 
 ;;clipboard function////////////
 
-	search_baidu()
-	{	
-		Oldclipboard := clipboard
-		clipboard=
-		sleep,200
-		send,^c
-		clipwait,2
-		ie := ComObjCreate("InternetExplorer.Application")
-		ie.Visible := true  ; 已知这个语句在 IE7 上无法正常执行.
-		url := "http://www.baidu.com/s?word=" . UrlEncode(clipboard)
-		ie.Navigate(url)
-		while ie.Busy
-			sleep, 100
-		while ie.document.readystate!="complete"
-			sleep,100
-		clipboard := Oldclipboard
-	}
-	
-	
-	remove_endline()
-	{
-		clipboard=
-		sleep,200
-		send,^c
-		clipwait,2
-		StringReplace, clipboard, clipboard, `r`n, %A_SPACE%, All
-	}
+search_baidu()
+{	
+	Oldclipboard := clipboard
+	clipboard=
+	sleep,200
+	send,^c
+	clipwait,2
+	ie := ComObjCreate("InternetExplorer.Application")
+	ie.Visible := true  ; 已知这个语句在 IE7 上无法正常执行.
+	url := "http://www.baidu.com/s?word=" . UrlEncode(clipboard)
+	ie.Navigate(url)
+	while ie.Busy
+		sleep, 100
+	while ie.document.readystate!="complete"
+		sleep,100
+	clipboard := Oldclipboard
+}
+
+
+remove_endline()
+{
+	clipboard=
+	sleep,200
+	send,^c
+	clipwait,2
+	StringReplace, clipboard, clipboard, `r`n, %A_SPACE%, All
+}
 
 ;;clipboard function////////////
 
@@ -1389,13 +1490,21 @@ click_pic(picRoute)
 
 CaptureGUI()
 {
+	global Matrix
 	CoordMode, Mouse, Screen
-	MouseGetPos, startX, startY 
-	while(GetKeyState("LCONTROL",P)=1 && GetKeyState("LALT",P)=1)
+	MouseGetPos, startX, startY
+	Gui, captureRect:New  
+	Gui, captureRect:    +LastFound +AlwaysOnTop +HwndRectHwnd
+	Gui, captureRect:    Color, EEAA99
+	WinSet, Transparent, 150
+	Gui, captureRect:    Font, s20 
+	Gui, captureRect:    -Caption
+	Gui, captureRect:    Add, Text, Cblue vMatrix, >>>>截取屏幕
+	while(GetKeyState("LCONTROL",P)=1 && GetKeyState("LALT",P)=1)   ;;如果ctrl和alt按下, 进入循环
 	{
 		Sleep,10
 		KeyIsDown := GetKeyState("LCONTROL")
-		if (KeyIsDown = 0)
+		if (KeyIsDown = 0)   ;;如果ctrl释放, 确定截图区域
 		{
 			;traytip,, %pxpos% %nxpos% %xpos% %pypos% %nypos% %ypos%
 			;Getfont(%pxpos%,%pypos%,%xpos%,%ypos%)
@@ -1416,12 +1525,10 @@ CaptureGUI()
 		MouseGetPos, xpos, ypos
 		nxpos = % xpos - startX
 		nypos = % ypos - startY
-		Gui, captureRect:    +LastFound +AlwaysOnTop 
-		Gui, captureRect:    Color, EEAA99
-		WinSet, Transparent, 150
-		Gui, captureRect:    Font, s10 
+		ControlSetText, Static1, %nxpos%×%nypos%, ahk_id %RectHwnd%
+		Gui, captureRect:    Font, s10
 		Gui, captureRect:    Add, Text, Cblue, >>>>截取屏幕
-		Gui, captureRect:    -Caption 
+		Gui, captureRect:    Font, s20
 		Gui, captureRect:    Show, x%startX% y%startY% h%nypos% w%nxpos% 
 		OnMessage(0x201, "WM_LBUTTONDOWN") 
           
@@ -1430,7 +1537,7 @@ CaptureGUI()
   
 CaptureImage()
 {
-	global picNum
+	picNum:=0
 	wingetpos,  GUI_X, GUI_Y, GUI_Width, GUI_Height, ahk_class AutoHotkeyGUI, >>>>截取屏幕
     Gui, captureRect:    hide
     sleep,100
@@ -1438,7 +1545,11 @@ CaptureImage()
 	endPointY := GUI_Y + GUI_Height
 	rect=%GUI_X%, %GUI_Y%, %endPointX%, %endPointY%
     path := A_ScriptDir . "\" . picNum . ".bmp"
-    picNum++
+	while(FileExist(path))
+    {
+		picNum++
+		path := A_ScriptDir . "\" . picNum . ".bmp"
+	}
     CaptureScreen(rect, False, path)
     return
 }
@@ -1473,7 +1584,7 @@ Connect_seu_wlan()
 		}
 		
 		ifinstring, result, 成功
-			traytip, , 成功连接seu_wlan...
+			traytip, Notice, 成功连接seu_wlan..., , 1
 	}
 	return 1
 }
@@ -1490,7 +1601,7 @@ login_webseu(username, password)
 	result := WebRequest.ResponseText
 	;fileappend, %result%, test.txt
 	ifinstring, result, success
-		traytip, , 已成功登录seu_wlan...	
+		traytip, Notice, 已成功登录seu_wlan..., , 1
 	else ifinstring, result, \u60a8\u7684Web\u8ba4\u8bc1\u670d\u52a1\u5df2\u8d85\u671f
 		{
 			msgbox, web认证提示已超期，请进行充值!
@@ -1517,7 +1628,7 @@ login_seu_wlan()
 	
 	loop 8
 	{
-		if(a_index=10)
+		if(a_index=8)
 		{
 			msgbox,16, , ERROR_LOGIN_SEU %ERROR_LOGIN_SEU%
 			exitapp
