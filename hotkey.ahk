@@ -205,6 +205,15 @@ Space::		;;exit translate panel
 	CaptureGUI()
 	Return
 	
+	
+#ifwinactive ahk_class CabinetWClass
+
+F7::
+	create_folder()
+	return
+	
+#ifwinactive
+	
 #ifwinactive ahk_class AutoHotkeyGUI, >>>>截取屏幕
 
 enter::
@@ -365,9 +374,14 @@ $s::
 ;//////HotkeyHotkeyHotkeyHotkeyHotkeyHotkeyHotkeyHotkeyHotkeyHotkeyHotkeyHotkeyHotkey
 
 ;LabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabel
+; CommentPanelGuiClose:
+; CommentPanelButtonOK:
+	; submit_comment()
+	; return
+	
 CommentPanelGuiClose:
 CommentPanelButtonOK:
-	submit_comment()
+	ComenGui.submit()
 	return
 ;/////LabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabel
 
@@ -407,6 +421,46 @@ return
 ;FunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunctionFunction
 
 ;;base function////////////
+
+
+class CommentGUI
+{
+	Content := 
+    __New(title := "Enter your comment", prompts := "Enter your comment")
+    {
+		global Content
+		this.title := title
+		this.prompts := prompts
+        Gui, CommentPanel: New  
+		Gui, CommentPanel: Add, Text,, %prompts%
+		Gui, CommentPanel: Add, Edit, vContent ym  ; ym 选项开始一个新的控件列.
+		Gui, CommentPanel: Add, Button, default ym , OK ; ButtonOK (如果存在的话) 会在此按钮被按下时运行.
+		Gui, CommentPanel: Show,, %title%
+    }
+
+	waitfor_input()
+	{
+		
+		while(!(this.Content))
+			sleep, 100
+	}
+	
+	submit()
+	{
+		global Content
+		Gui, CommentPanel: Submit  ; 保存用户的输入到每个控件的关联变量中.
+		this.Content := Content
+		if(!Content)
+		{
+			traytip, , Content不能为空, 请重新输入。
+			Gui, CommentPanel: Show,, % this.prompts
+			return
+		}
+		Gui, CommentPanel: destroy
+		return
+	}
+	
+}
 
 suspend()
 {
@@ -864,7 +918,7 @@ translate(byref str)
 	
 	url := "http://translate.google.com/"
 	
-	static WebRequest := ComObjCreate("Microsoft.XMLHTTP")
+	WebRequest := ComObjCreate("Microsoft.XMLHTTP")
 	; WebRequest.Open("POST", url,False)
 	
 	WebRequest.Open("POST", url,true)
@@ -899,9 +953,12 @@ translate(byref str)
 
 translate_get(byref str)
 {
-	url:= "http://translate.google.cn/translate_a/t?client=t&sl=en&tl=zh-CN&hl=en&sc=2&ie=UTF-8&oe=UTF-8&q="
-	url .= str
-	static WebRequest := ComObjCreate("Microsoft.XMLHTTP")
+	if(is_chinese(str))
+		url:= "http://translate.google.cn/translate_a/t?client=t&sl=zh-CN&tl=en&hl=en&sc=2&ie=UTF-8&oe=UTF-8&q="
+	else
+		url:= "http://translate.google.cn/translate_a/t?client=t&sl=en&tl=zh-CN&hl=en&sc=2&ie=UTF-8&oe=UTF-8&q="
+	url .= UrlEncode(str, "utf8")
+	WebRequest := ComObjCreate("Microsoft.XMLHTTP")
 	WebRequest.Open("GET", url,true)
 	;WebRequest.Open("GET", url,false)
 	WebRequest.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=UTF-8")
@@ -987,8 +1044,8 @@ translate_to_clipboard(IsCopy = "yes")
 	str:=clipboard
 	
 	preproccess_string(str)
-	;TranslateStr := translate_get(str)
-	TranslateStr := translate(str)
+	TranslateStr := translate_get(str)
+	;TranslateStr := translate(str)
 	eliminate_unexpected_word(TranslateStr)
 	
 	clipboard := TranslateStr
@@ -1293,14 +1350,13 @@ python_equal()
 
 git_commit()
 {
-	global Comment, GithubFolder 
+	global GithubFolder,ComenGui 
 	WinGetTitle, title, ahk_class Notepad++
 	StringTrimRight, filePath, title, 12
 	RegExMatch(title,".*(?=\s-)",filePath)
 	RegExMatch(title, "U)[^\\]*(?=\s)", fileName)
 	RegExMatch(fileName, "\..*\b", fileType)
 	StringTrimLeft, fileType, fileType, 1, 1
-	msgbox, %filePath%
 	if(fileType = "ahk" || fileType = "AHK")
 	{
 		RegExMatch(filePath, "(\\[^\\]*)\.(ahk|AHK)", subpat)
@@ -1342,12 +1398,16 @@ git_commit()
 		else
 			Output := StdoutToVar_CreateProcess("git add " . fileName, "", folder)
 		;msgbox, %Output%
-		comment_gui()
-		while(!Comment)
-			sleep, 1000
-		Output := StdoutToVar_CreateProcess("git commit -m " . """" . Comment . """", "", folder)
-		Comment := ""
-		msgbox, %Output%
+		; comment_gui()
+		; while(!Comment)
+			; sleep, 1000
+		ComenGui:= new CommentGUI("make your comment", "Comment")
+		ComenGui.waitfor_input()
+		
+		Output := StdoutToVar_CreateProcess("git commit -m " . """" . ComenGui.Content . """", "", folder)
+		;Comment := ""
+		ComenGui.Content:=
+		;msgbox, %Output%
 		Output := StdoutToVar_CreateProcess("git remote -v", "", folder)
 		if(!Output)
 		{
@@ -1378,11 +1438,13 @@ git_commit()
 			}
 			Output := StdoutToVar_CreateProcess("git add " . fileName, "", folder)
 			;msgbox, %Output%
-			comment_gui()
-			while(!Comment)
-				sleep, 1000
-			Output := StdoutToVar_CreateProcess("git commit -m " . """" . Comment . """", "", folder)
-			Comment := ""
+			; comment_gui()
+			; while(!Comment)
+				; sleep, 1000
+			ComenGui:= new CommentGUI("enter your folder name", "folder name")
+			ComenGui.waitfor_input()
+			Output := StdoutToVar_CreateProcess("git commit -m " . """" . ComenGui.Content . """", "", folder)
+			ComenGui.Content := ""
 			msgbox, %Output%
 		}
 	}
@@ -1644,6 +1706,26 @@ login_seu_wlan()
 }
 
 ;;login seu-wlan function////////////
+
+
+
+;;create folder//////////////////////
+
+create_folder()
+{
+	global ComenGui
+	ControlGetText, active_path, ToolbarWindow322,  ahk_class CabinetWClass
+	stringtrimleft, active_path, active_path, 4
+	if(active_path="计算机")
+		return
+	ComenGui:= new CommentGUI("enter your folder name", "folder name")
+	ComenGui.waitfor_input()
+	command := "cmd.exe /c md " . ComenGui.Content
+	sOutput := StdoutToVar_CreateProcess(command, "", active_path)
+	ComenGui.Content :=
+}
+
+;;create folder//////////////////////
 
 
 
