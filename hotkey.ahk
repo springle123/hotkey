@@ -44,6 +44,10 @@ if(is_snadial_run())
 		; CloseCMD()
 		; sleep, 3000
 	; }
+	
+GroupAdd, Explorer, ahk_class Progman
+GroupAdd, Explorer, ahk_class WorkerW
+GroupAdd, Explorer, ahk_class CabinetWClass
 			
 
 return
@@ -91,6 +95,10 @@ pause::
 ; #h::	;;send html frame
 	; send_html_frame()
 	; return
+	
+#j::   ;;run ImageJ
+	run, D:\Program Files\ImageJ\ImageJ.exe
+	return
 	
 #t::	;;set active window on top
 	set_win_ontop()
@@ -200,19 +208,36 @@ Space::		;;exit translate panel
 	login_seu_wlan()
 	return
 
-;;截图快捷键//////////////	
+;;截图快捷键/////////////////	
 ^!LButton::
 	CaptureGUI()
 	Return
-	
-	
+!PrintScreen::
+	CaptureClient(2)
+	return
+^!PrintScreen::
+	CaptureClient(1)
+	return
+
+#ifwinactive ahk_class WorkerW
+F7::
+	create_newfolder(1)
+	return
+#ifwinactive
+
 #ifwinactive ahk_class CabinetWClass
 
 F7::
-	create_folder()
+	create_newfolder(0)
+	return
+#ifwinactive
+
+#IfWinActive ahk_group Explorer
+F4::
+	OpenWithNotepadPP()
 	return
 	
-#ifwinactive
+#IfWinActive	
 	
 #ifwinactive ahk_class AutoHotkeyGUI, >>>>截取屏幕
 
@@ -475,10 +500,15 @@ suspend()
 
 copy_to_clip()
 {
-	clipboard=
-	sleep,200
-	send,^c
-	clipwait,1
+	clipboard = ; 清空剪贴板
+	Send, ^c
+	ClipWait, 2
+	if ErrorLevel
+	{
+		MsgBox, The attempt to copy text onto the clipboard failed.
+		return
+	}
+
 }
 
 StrPutVar(string, ByRef var, encoding)
@@ -1350,13 +1380,17 @@ python_equal()
 
 git_commit()
 {
-	global GithubFolder,ComenGui 
+	global GithubFolder,ComenGui
+	
+	;;得到当前编辑文件名、文件类型、文件路径
 	WinGetTitle, title, ahk_class Notepad++
 	StringTrimRight, filePath, title, 12
 	RegExMatch(title,".*(?=\s-)",filePath)
 	RegExMatch(title, "U)[^\\]*(?=\s)", fileName)
 	RegExMatch(fileName, "\..*\b", fileType)
 	StringTrimLeft, fileType, fileType, 1, 1
+	
+	;;确认该文件类型已设置GIT同步， 并获取当前编辑文件GIT本地仓库文件夹处路径
 	if(fileType = "ahk" || fileType = "AHK")
 	{
 		RegExMatch(filePath, "(\\[^\\]*)\.(ahk|AHK)", subpat)
@@ -1369,9 +1403,12 @@ git_commit()
 		return
 	}
 	
+	;;如果本地仓库中文件夹存在并已加入git管理，则复制文件，COMMIT，PUSH，否则新建本地仓库文件夹
 	if(FileExist(folder))
 	{
 		gitFolder := folder . "\.git"
+		
+		;;如果子文件夹中不存在.git文件夹， 询问是否将文件夹加入GIT管理
 		if(!FileExist(gitFolder))
 		{
 			msgbox, 4, , 所在文件夹未加入git资料库管理， 是否加入？
@@ -1380,15 +1417,16 @@ git_commit()
 			else
 				return			
 		}
+		
+		;;复制文件并GIT ADD
 		filecopy, %filePath%, %folder%, 1
+		;msgbox, %folder%
 		if(ErrorLevel != 0)
 		{
 			msgbox, 复制文件失败！
 			return
 		}
-		;msgbox,%folder%
 		Output := StdoutToVar_CreateProcess("git diff", "", folder)
-		;msgbox, %Output%
 		if(!Output)
 		{
 			traytip, , 两个文件相同！
@@ -1397,18 +1435,18 @@ git_commit()
 		}
 		else
 			Output := StdoutToVar_CreateProcess("git add " . fileName, "", folder)
-		;msgbox, %Output%
-		; comment_gui()
-		; while(!Comment)
-			; sleep, 1000
+	
+	
+		;;添加COMMENT
 		ComenGui:= new CommentGUI("make your comment", "Comment")
 		ComenGui.waitfor_input()
 		
+		;;GIT COMMIT
 		Output := StdoutToVar_CreateProcess("git commit -m " . """" . ComenGui.Content . """", "", folder)
-		;Comment := ""
 		ComenGui.Content:=
-		;msgbox, %Output%
 		Output := StdoutToVar_CreateProcess("git remote -v", "", folder)
+		
+		;;PUSH
 		if(!Output)
 		{
 			traytip, , 此资料库未加入远程管理!
@@ -1437,10 +1475,7 @@ git_commit()
 				return
 			}
 			Output := StdoutToVar_CreateProcess("git add " . fileName, "", folder)
-			;msgbox, %Output%
-			; comment_gui()
-			; while(!Comment)
-				; sleep, 1000
+			
 			ComenGui:= new CommentGUI("enter your folder name", "folder name")
 			ComenGui.waitfor_input()
 			Output := StdoutToVar_CreateProcess("git commit -m " . """" . ComenGui.Content . """", "", folder)
@@ -1541,7 +1576,7 @@ remove_endline()
 	sleep,200
 	send,^c
 	clipwait,2
-	StringReplace, clipboard, clipboard, `r`n, %A_SPACE%, All
+	StringReplace, clipboard, clipboard, `r`n, , All
 }
 
 ;;clipboard function////////////
@@ -1613,6 +1648,20 @@ CaptureImage()
 		path := A_ScriptDir . "\" . picNum . ".bmp"
 	}
     CaptureScreen(rect, False, path)
+    return
+}
+
+CaptureClient(i)
+{
+	picNum:=0
+	path := A_ScriptDir . "\" . picNum . ".PNG"
+	while(FileExist(path))
+    {
+		picNum++
+		path := A_ScriptDir . "\" . picNum . ".PNG"
+	}
+	CaptureScreen(i, False, 0)
+	CaptureScreen(i, False, path)
     return
 }
 
@@ -1688,9 +1737,9 @@ login_seu_wlan()
 	
 	Connect_seu_wlan()
 	
-	loop 8
+	loop 5
 	{
-		if(a_index=8)
+		if(a_index=5)
 		{
 			msgbox,16, , ERROR_LOGIN_SEU %ERROR_LOGIN_SEU%
 			exitapp
@@ -1698,7 +1747,7 @@ login_seu_wlan()
 		try login_webseu("220132840", "264914")
 		catch e
 		{
-			sleep, 500
+			sleep, 2000
 			continue
 		}
 		break
@@ -1709,20 +1758,45 @@ login_seu_wlan()
 
 
 
-;;create folder//////////////////////
+;;create folder and open with notepad++//////////////////////
 
-create_folder()
+OpenWithNotepadPP()
+{
+	clipOld := ClipboardAll
+	copy_to_clip()
+	clipboard=%clipboard% ;这句还是废话一下：windows 复制的时候，剪贴板保存的是“路径”。只是路径不是字符串，只要转换成字符串就可以粘贴出来了。
+	run, %comspec% /k "D:\Program Files\Notepad++\notepad++.exe" %clipboard%, , hide
+	Clipboard := clipOld   
+	return
+}
+
+create_newfolder(isdesktop)
+{
+	
+	if(isdesktop)
+	{
+		create_folder("C:\Users\lcq\Desktop")
+	}
+	else
+	{
+		ControlGetText, active_path, ToolbarWindow322,  ahk_class CabinetWClass
+		stringtrimleft, active_path, active_path, 4
+		if(active_path="计算机")
+			return
+		create_folder(active_path)
+	}
+	return
+}
+
+create_folder(path)
 {
 	global ComenGui
-	ControlGetText, active_path, ToolbarWindow322,  ahk_class CabinetWClass
-	stringtrimleft, active_path, active_path, 4
-	if(active_path="计算机")
-		return
 	ComenGui:= new CommentGUI("enter your folder name", "folder name")
 	ComenGui.waitfor_input()
-	command := "cmd.exe /c md " . ComenGui.Content
-	sOutput := StdoutToVar_CreateProcess(command, "", active_path)
+	command := "cmd.exe /c md " . """" . ComenGui.Content . """"
+	sOutput := StdoutToVar_CreateProcess(command, "", path)  ;;
 	ComenGui.Content :=
+	return
 }
 
 ;;create folder//////////////////////
