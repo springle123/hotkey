@@ -157,11 +157,9 @@ Space::		;;exit translate panel
 	run, F:\literature	
 	return
 	
-+c::
-	remove_endline()
-	return	
+
 	
-+f::    ;;search baidu engine with clipboard as keyword
+Tab & f::    ;;search baidu engine with clipboard as keyword
 	search_baidu()
 	return	
 	
@@ -333,6 +331,11 @@ $,::
 
 
 #ifwinactive ahk_class AcrobatSDIWindow
+
++c::
+	remove_endline()
+	return	
+
 +s::
 click_pic("C:\Users\lcq\Desktop\resource\pdfpic\select.bmp")
 ifwinexist, ahk_class AVL_AVFloating
@@ -502,7 +505,7 @@ copy_to_clip()
 {
 	clipboard = ; 清空剪贴板
 	Send, ^c
-	ClipWait, 2
+	ClipWait, 300
 	if ErrorLevel
 	{
 		MsgBox, The attempt to copy text onto the clipboard failed.
@@ -988,7 +991,7 @@ translate_get(byref str)
 	else
 		url:= "http://translate.google.cn/translate_a/t?client=t&sl=en&tl=zh-CN&hl=en&sc=2&ie=UTF-8&oe=UTF-8&q="
 	url .= UrlEncode(str, "utf8")
-	WebRequest := ComObjCreate("Microsoft.XMLHTTP")
+	static WebRequest := ComObjCreate("Microsoft.XMLHTTP")
 	WebRequest.Open("GET", url,true)
 	;WebRequest.Open("GET", url,false)
 	WebRequest.setRequestHeader("Content-Type","application/x-www-form-urlencoded; charset=UTF-8")
@@ -1055,7 +1058,10 @@ translate_to_clipboard(IsCopy = "yes")
 	
 	if(IsCopy = "yes")
 	{
-		copy_to_clip()
+		clipboard=
+		sleep,100
+		send,^c
+		clipwait,1
 	}
 	
 	if clipboard=
@@ -1557,7 +1563,7 @@ search_baidu()
 	clipboard=
 	sleep,200
 	send,^c
-	clipwait,2
+	clipwait,300
 	ie := ComObjCreate("InternetExplorer.Application")
 	ie.Visible := true  ; 已知这个语句在 IE7 上无法正常执行.
 	url := "http://www.baidu.com/s?word=" . UrlEncode(clipboard)
@@ -1575,8 +1581,9 @@ remove_endline()
 	clipboard=
 	sleep,200
 	send,^c
-	clipwait,2
-	StringReplace, clipboard, clipboard, `r`n, , All
+	clipwait,300
+	clipboard:=preproccess_string(clipboard)
+	;StringReplace, clipboard, clipboard, `r`n, , All
 }
 
 ;;clipboard function////////////
@@ -1641,11 +1648,11 @@ CaptureImage()
 	endPointX := GUI_X + GUI_Width
 	endPointY := GUI_Y + GUI_Height
 	rect=%GUI_X%, %GUI_Y%, %endPointX%, %endPointY%
-    path := A_ScriptDir . "\" . picNum . ".bmp"
+    path := A_ScriptDir . "\" . picNum . ".png"
 	while(FileExist(path))
     {
 		picNum++
-		path := A_ScriptDir . "\" . picNum . ".bmp"
+		path := A_ScriptDir . "\" . picNum . ".png"
 	}
     CaptureScreen(rect, False, path)
     return
@@ -1654,11 +1661,11 @@ CaptureImage()
 CaptureClient(i)
 {
 	picNum:=0
-	path := A_ScriptDir . "\" . picNum . ".PNG"
+	path := A_ScriptDir . "\" . picNum . ".png"
 	while(FileExist(path))
     {
 		picNum++
-		path := A_ScriptDir . "\" . picNum . ".PNG"
+		path := A_ScriptDir . "\" . picNum . ".png"
 	}
 	CaptureScreen(i, False, 0)
 	CaptureScreen(i, False, path)
@@ -1736,7 +1743,7 @@ login_seu_wlan()
 		fileinstall, C:\Users\lcq\Desktop\resource\seu-wlan.xml, D:\Program Files\seu_dial\seu-wlan.xml, 1
 	
 	Connect_seu_wlan()
-	
+	sleep, 1000
 	loop 5
 	{
 		if(a_index=5)
@@ -1765,7 +1772,10 @@ OpenWithNotepadPP()
 	clipOld := ClipboardAll
 	copy_to_clip()
 	clipboard=%clipboard% ;这句还是废话一下：windows 复制的时候，剪贴板保存的是“路径”。只是路径不是字符串，只要转换成字符串就可以粘贴出来了。
-	run, %comspec% /k "D:\Program Files\Notepad++\notepad++.exe" %clipboard%, , hide
+	
+	ifexist, %clipboard%
+		run, %comspec% /k "D:\Program Files\Notepad++\notepad++.exe" %clipboard%, , hide
+		
 	Clipboard := clipOld   
 	return
 }
@@ -1785,6 +1795,7 @@ create_newfolder(isdesktop)
 			return
 		create_folder(active_path)
 	}
+	 
 	return
 }
 
