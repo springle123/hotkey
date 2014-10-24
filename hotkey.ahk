@@ -142,6 +142,17 @@ pause::
 	return
 #IfWinNotActive
 
+#IfWinNotActive ahk_class Warcraft III
+^q::
+	old_clipboard := clipboard
+	copy_to_clip()
+	file := "F:\Study\new_word\" . A_YYYY . A_MM . A_DD . ".txt"
+	fileappend, %clipboard%`n, %file%
+	traytip, , 单词%clipboard%已经加入单词本。。。
+	clipboard := old_clipboard
+	return
+#IfWinNotActive
+
 MButton::
 Space::		;;exit translate panel
 	Gui, Panel:	destroy
@@ -159,7 +170,7 @@ Space::		;;exit translate panel
 	
 
 	
-Tab & f::    ;;search baidu engine with clipboard as keyword
+~Tab & f::    ;;search baidu engine with clipboard as keyword
 	search_baidu()
 	return	
 	
@@ -210,12 +221,64 @@ Tab & f::    ;;search baidu engine with clipboard as keyword
 ^!LButton::
 	CaptureGUI()
 	Return
+	
+^!MButton::
+	FixedCapture()
+return
+	
 !PrintScreen::
 	CaptureClient(2)
 	return
 ^!PrintScreen::
 	CaptureClient(1)
 	return
+	
+$^r::
+DetectHiddenWindows, on
+IfWinExist, ahk_class AutoHotkeyGUI, >>>>截取屏幕
+{
+	Gui, captureRect:  show
+	Gui, captureRect2:  show
+	winactivate, ahk_class AutoHotkeyGUI, >>>>截取屏幕
+}
+else
+	send, ^r
+DetectHiddenWindows, off
+return	
+	
+	
+#ifwinactive ahk_class AutoHotkeyGUI, >>>>截取屏幕
+
+enter::
+	CaptureImage()
+	return
+	
+alt & enter::
+	CaptureImage(1)
+	return
+	
+ESC::
+	Gui, captureRect:  destroy
+	Gui, captureRect2:  destroy
+	return
+	
+left::
+	move_window("left", -1) 
+	return
+
+right::
+	move_window("left", 1)
+	return
+	
+up::
+	move_window("up", -1) 
+	return
+	
+down::
+	move_window("down", 1)
+	return
+#ifwinactive
+;;截图快捷键//////////////
 
 #ifwinactive ahk_class WorkerW
 F7::
@@ -236,34 +299,7 @@ F4::
 	return
 	
 #IfWinActive	
-	
-#ifwinactive ahk_class AutoHotkeyGUI, >>>>截取屏幕
 
-enter::
-	CaptureImage()
-	return
-
-ESC::
-	Gui, captureRect:  destroy
-	return
-	
-left::
-	move_window("left", -1) 
-	return
-
-right::
-	move_window("left", 1)
-	return
-	
-up::
-	move_window("up", -1) 
-	return
-	
-down::
-	move_window("down", 1)
-	return
-#ifwinactive
-;;截图快捷键//////////////
 	
 LWin & F1:: 	;;launch youdao dictionary， window hidden
 	hide_window("ahk_class YodaoMainWndClass")
@@ -287,7 +323,7 @@ F1::
 #IfWinActive
 
 
-#IfWinActive .*\.(py|PY) - Notepad++
+#IfWinActive .*\.(py|PY|pyw|PYW) - Notepad++
 F1::
 	open_helpfile("py")
 	return
@@ -1638,12 +1674,49 @@ CaptureGUI()
           
 	}
 }
-  
-CaptureImage()
+
+
+FixedCapture()
+{
+	global Content, ComenGui
+	ComenGui:= new CommentGUI("input matrix", "matrix")
+	ComenGui.waitfor_input()
+	StringSplit, demension, Content, %A_Tab%%A_Space% ,
+	ComenGui.Content:=
+	FixedCaptureGUI(demension1, demension2)
+}
+
+
+FixedCaptureGUI(width, height)
+{
+	global nMatrix, Content
+	CoordMode, Mouse, Screen
+	MouseGetPos, startX, startY
+	Gui, captureRect2:New  
+	Gui, captureRect2:    +LastFound +AlwaysOnTop +HwndRectHwnd
+	Gui, captureRect2:    Color, EEAA99
+	WinSet, Transparent, 150
+	Gui, captureRect2:    -Caption
+	Gui, captureRect2:    Font, s20
+	loop 30
+	{
+		
+		Gui, captureRect2:    Add, Text, Cblue, >>>>截取屏幕
+	}
+	
+	Gui, captureRect2:    Font, s20
+	Gui, captureRect2:    Show, x%startX% y%startY% h%height% w%width% 
+	ControlSetText, Static1, %width%×%height%, ahk_id %RectHwnd%
+	OnMessage(0x201, "WM_LBUTTONDOWN") 
+          
+}
+
+CaptureImage(clip=0)
 {
 	picNum:=0
 	wingetpos,  GUI_X, GUI_Y, GUI_Width, GUI_Height, ahk_class AutoHotkeyGUI, >>>>截取屏幕
     Gui, captureRect:    hide
+	Gui, captureRect2:    hide
     sleep,100
 	endPointX := GUI_X + GUI_Width
 	endPointY := GUI_Y + GUI_Height
@@ -1654,7 +1727,11 @@ CaptureImage()
 		picNum++
 		path := A_ScriptDir . "\" . picNum . ".png"
 	}
-    CaptureScreen(rect, False, path)
+	if(clip=0)
+		CaptureScreen(rect, False, path)
+	else
+		CaptureScreen(rect, False, 0)
+	
     return
 }
 
