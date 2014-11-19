@@ -224,21 +224,11 @@ Space::		;;exit translate panel
 ;;截图快捷键/////////////////	
 
 F8::
-	DetectHiddenWindows On  ; 才可以检测到脚本的隐藏主窗口.
-	SetTitleMatchMode 2  ; 避免为下面的文件指定完整的路径.
-	IfWinNotExist Magnifier.ahk - AutoHotkey 
-		run, C:\Users\lcq\Desktop\resource\Magnifier.ahk
-	else
-		WinClose Magnifier.ahk - AutoHotkey
-	DetectHiddenWindows Off
+	magnifier()
 	return
 	
 ^!LButton::
 	CaptureGUI()
-	DetectHiddenWindows On  ; 才可以检测到脚本的隐藏主窗口.
-	SetTitleMatchMode 2  ; 避免为下面的文件指定完整的路径.
-	WinClose Magnifier.ahk - AutoHotkey 
-	DetectHiddenWindows Off
 	Return
 	
 ^!MButton::
@@ -766,6 +756,17 @@ dial_hotkey_off()
 	hotkey, ^!a, off
 	hotkey, ^+a, off
 	hotkey, ^+b, off
+}
+
+magnifier()
+{
+	DetectHiddenWindows On  ; 才可以检测到脚本的隐藏主窗口.
+	SetTitleMatchMode 2  ; 避免为下面的文件指定完整的路径.
+	IfWinNotExist Magnifier.ahk - AutoHotkey 
+		run, C:\Users\lcq\Desktop\resource\Magnifier.ahk
+	else
+		WinClose Magnifier.ahk - AutoHotkey
+	DetectHiddenWindows Off
 }
 
 ;;base function////////////
@@ -1687,16 +1688,20 @@ CaptureGUI()
 			return
 		}
 		MouseGetPos, xpos, ypos
-		nxpos = % xpos - startX
-		nypos = % ypos - startY
+		nxpos = % xpos - startX + 1
+		nypos = % ypos - startY + 1
 		ControlSetText, Static1, %nxpos%×%nypos%, ahk_id %RectHwnd%
 		Gui, captureRect:    Font, s10
 		Gui, captureRect:    Add, Text, Cblue, >>>>截取屏幕
 		Gui, captureRect:    Font, s20
 		Gui, captureRect:    Show, x%startX% y%startY% h%nypos% w%nxpos% 
-		OnMessage(0x201, "WM_LBUTTONDOWN") 
+		OnMessage(0x201, "WM_LBUTTONDOWN")
           
 	}
+	DetectHiddenWindows On  ; 才可以检测到脚本的隐藏主窗口.
+	SetTitleMatchMode 2  ; 避免为下面的文件指定完整的路径.
+	WinClose Magnifier.ahk - AutoHotkey 
+	DetectHiddenWindows Off
 }
 
 FixedCapture()
