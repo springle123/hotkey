@@ -34,6 +34,8 @@ GithubFolder := "F:\GitCode"  ;;Github目录
 
 Comment :=					  ;;初始化Comment
 
+ZoomState=False
+
 if(is_snadial_run())
 	dial_hotkey_off()
 
@@ -143,6 +145,7 @@ pause::
 #IfWinNotActive
 
 #IfWinNotActive ahk_class Warcraft III
+#IfWinNotActive ahk_class Notepad++
 ^q::
 	old_clipboard := clipboard
 	copy_to_clip()
@@ -151,6 +154,7 @@ pause::
 	traytip, , 单词%clipboard%已经加入单词本。。。
 	clipboard := old_clipboard
 	return
+#IfWinNotActive
 #IfWinNotActive
 
 MButton::
@@ -218,8 +222,23 @@ Space::		;;exit translate panel
 	return
 
 ;;截图快捷键/////////////////	
+
+F8::
+	DetectHiddenWindows On  ; 才可以检测到脚本的隐藏主窗口.
+	SetTitleMatchMode 2  ; 避免为下面的文件指定完整的路径.
+	IfWinNotExist Magnifier.ahk - AutoHotkey 
+		run, C:\Users\lcq\Desktop\resource\Magnifier.ahk
+	else
+		WinClose Magnifier.ahk - AutoHotkey
+	DetectHiddenWindows Off
+	return
+	
 ^!LButton::
 	CaptureGUI()
+	DetectHiddenWindows On  ; 才可以检测到脚本的隐藏主窗口.
+	SetTitleMatchMode 2  ; 避免为下面的文件指定完整的路径.
+	WinClose Magnifier.ahk - AutoHotkey 
+	DetectHiddenWindows Off
 	Return
 	
 ^!MButton::
@@ -233,6 +252,7 @@ return
 	CaptureClient(1)
 	return
 	
+	
 $^r::
 DetectHiddenWindows, on
 IfWinExist, ahk_class AutoHotkeyGUI, >>>>截取屏幕
@@ -245,7 +265,11 @@ else
 	send, ^r
 DetectHiddenWindows, off
 return	
-	
+
+;;放大窗口快捷键///////////////////
+
+
+;;放大窗口快捷键///////////////////	
 	
 #ifwinactive ahk_class AutoHotkeyGUI, >>>>截取屏幕
 
@@ -280,18 +304,10 @@ down::
 #ifwinactive
 ;;截图快捷键//////////////
 
-#ifwinactive ahk_class WorkerW
-F7::
-	create_newfolder(1)
-	return
-#ifwinactive
 
-#ifwinactive ahk_class CabinetWClass
+F7::^+n
+return
 
-F7::
-	create_newfolder(0)
-	return
-#ifwinactive
 
 #IfWinActive ahk_group Explorer
 F4::
@@ -448,6 +464,9 @@ CommentPanelButtonOK:
 	ComenGui.submit()
 	return
 ;/////LabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabelLabel
+
+
+
 
 ;HotStringHotStringHotStringHotStringHotStringHotStringHotStringHotStringHotStringHot
 
@@ -1630,7 +1649,7 @@ remove_endline()
 
 CaptureGUI()
 {
-	global Matrix
+	global Matrix, ZoomState
 	CoordMode, Mouse, Screen
 	MouseGetPos, startX, startY
 	Gui, captureRect:New  
@@ -1640,6 +1659,11 @@ CaptureGUI()
 	Gui, captureRect:    Font, s20 
 	Gui, captureRect:    -Caption
 	Gui, captureRect:    Add, Text, Cblue vMatrix, >>>>截取屏幕
+	;;zoom window 
+	
+	
+	
+	
 	while(GetKeyState("LCONTROL",P)=1 && GetKeyState("LALT",P)=1)   ;;如果ctrl和alt按下, 进入循环
 	{
 		Sleep,10
@@ -1674,7 +1698,6 @@ CaptureGUI()
           
 	}
 }
-
 
 FixedCapture()
 {
@@ -1856,36 +1879,7 @@ OpenWithNotepadPP()
 	Clipboard := clipOld   
 	return
 }
-
-create_newfolder(isdesktop)
-{
-	
-	if(isdesktop)
-	{
-		create_folder("C:\Users\lcq\Desktop")
-	}
-	else
-	{
-		ControlGetText, active_path, ToolbarWindow322,  ahk_class CabinetWClass
-		stringtrimleft, active_path, active_path, 4
-		if(active_path="计算机")
-			return
-		create_folder(active_path)
-	}
-	 
-	return
-}
-
-create_folder(path)
-{
-	global ComenGui
-	ComenGui:= new CommentGUI("enter your folder name", "folder name")
-	ComenGui.waitfor_input()
-	command := "cmd.exe /c md " . """" . ComenGui.Content . """"
-	sOutput := StdoutToVar_CreateProcess(command, "", path)  ;;
-	ComenGui.Content :=
-	return
-}
+ 
 
 ;;create folder//////////////////////
 
