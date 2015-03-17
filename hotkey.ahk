@@ -50,7 +50,9 @@ if(is_snadial_run())
 GroupAdd, Explorer, ahk_class Progman
 GroupAdd, Explorer, ahk_class WorkerW
 GroupAdd, Explorer, ahk_class CabinetWClass
-			
+
+GroupAdd, NewFolder, ahk_class wndclass_desked_gsk
+GroupAdd, NewFolder, ahk_class TTOTAL_CMD
 
 return
 
@@ -82,6 +84,10 @@ pause::
 	;RunProgram("Everything.exe", "D:\Small software\Everything\Everything.exe")
 	run_and_hide("Everything.exe", "D:\Small software\Everything\Everything.exe", "ahk_class EVERYTHING")
 	return
+#y::
+	run_and_hide("Evernote.exe", "C:\Program Files\Evernote\Evernote\Evernote.exe", "ahk_class ENMainFrame")
+	return
+	
 #g::    ;;comit script to github, see lable
 	git_commit()
 	return
@@ -111,7 +117,7 @@ pause::
 	return
 	
 #w::	;;launch wifi
-	run,%comspec% /c Wifi_Launcher.cmd
+	run,%comspec% /c C:\Users\lcq\Desktop\AHK_Script\resource\Wifi_Launcher.cmd
 	return
 #z::
 	window()
@@ -174,7 +180,7 @@ Space::		;;exit translate panel
 	
 
 	
-~Tab & f::    ;;search baidu engine with clipboard as keyword
+!f::    ;;search baidu engine with clipboard as keyword
 	search_baidu()
 	return	
 	
@@ -235,7 +241,7 @@ F8::
 	FixedCapture()
 return
 	
-!PrintScreen::
+$!PrintScreen::
 	CaptureClient(2)
 	return
 ^!PrintScreen::
@@ -294,9 +300,12 @@ down::
 #ifwinactive
 ;;截图快捷键//////////////
 
+#IfWinNotActive ahk_group NewFolder
 
 F7::^+n
 return
+
+#IfWinNotActive
 
 
 #IfWinActive ahk_group Explorer
@@ -312,7 +321,7 @@ LWin & F1:: 	;;launch youdao dictionary， window hidden
 	return
 
 LControl & F1:: 	;;launch youdao dictionary
-	RunProgram("YodaoDict.exe", "C:\Users\lcq\AppData\Local\Youdao\Dict\Application\YodaoDict.exe")
+	RunProgram("YodaoDict.exe", "D:\YodaoDict\YodaoDict.exe")
 	return
 
 SHIFT & mButton::	;;get mouse coordinate
@@ -379,27 +388,70 @@ $,::
 	return	
 
 +s::
-click_pic("C:\Users\lcq\Desktop\resource\pdfpic\select.bmp")
+click_pic("C:\Users\lcq\Desktop\AHK_Script\resource\pdfpic\select.bmp")
 ifwinexist, ahk_class AVL_AVFloating
 	winhide, ahk_class AVL_AVFloating
 return
 
 +h::
-click_pic("C:\Users\lcq\Desktop\resource\pdfpic\highlight.bmp")
+	click_pic("C:\Users\lcq\Desktop\AHK_Script\resource\pdfpic\highlight.bmp")
 return
 
 +a::
-click_pic("C:\Users\lcq\Desktop\resource\pdfpic\addtext.bmp")
+	click_pic("C:\Users\lcq\Desktop\AHK_Script\resource\pdfpic\addtext.bmp")
 return
 
 +u::
-click_pic("C:\Users\lcq\Desktop\resource\pdfpic\underline.bmp")
+	click_pic("C:\Users\lcq\Desktop\AHK_Script\resource\pdfpic\underline.bmp")
 
 
 return
 
 #ifwinactive
 
+;;rainlender日历
+#IfWinActive ahk_class wxWindowNR
+enter::
+
+ControlGet, BtnID, Hwnd,, Button29, ahk_class wxWindowNR
+ControlFocus , , ahk_id %BtnID%
+controlsend, , {enter}, ahk_id %BtnID%
+
+return
+
+
+;有道chrome插件
+; #IfWinActive ahk_class Chrome_WidgetWin_1
+; ~^m::
+
+	; WinGetPos, , , width, height, A
+	; while(width!=258 || height!=212)
+	; {
+		
+		; sleep 1
+		; WinGetPos, , , width, height, A
+		
+		; if(a_index=3000)
+		; {
+			; msgbox, 有道chrome插件循环达到最大限制!
+			; return
+		; }
+		
+	; }
+	; blockinput,on
+	; winwaitactive, ahk_class Chrome_WidgetWin_1	
+	; MouseGetPos, xposi, yposi
+	; CoordMode, mouse, window
+	; click ,27 118 
+	; CoordMode, mouse, screen
+	; MouseMove, xposi, yposi, 0
+	; sleep, 100
+	; send, {esc}
+	; blockinput,off
+
+; return
+
+#IfWinActive
 	
 #IfWinActive 按键精灵
 
@@ -763,7 +815,7 @@ magnifier()
 	DetectHiddenWindows On  ; 才可以检测到脚本的隐藏主窗口.
 	SetTitleMatchMode 2  ; 避免为下面的文件指定完整的路径.
 	IfWinNotExist Magnifier.ahk - AutoHotkey 
-		run, C:\Users\lcq\Desktop\resource\Magnifier.ahk
+		run, C:\Users\lcq\Desktop\AHK_Script\resource\Magnifier.ahk
 	else
 		WinClose Magnifier.ahk - AutoHotkey
 	DetectHiddenWindows Off
@@ -851,7 +903,7 @@ hide_window(ahkclass)   ;;hide normal window include Shell_TrayWnd and youdao
 			hWnd := errorlevel
 			if(hWnd=0)
 			{
-				RunProgram("YodaoDict.exe", "C:\Users\lcq\AppData\Local\Youdao\Dict\Application\YodaoDict.exe", false)
+				RunProgram("YodaoDict.exe", "D:\YodaoDict\YodaoDict.exe", false)
 				return
 			}
 		}
@@ -1210,27 +1262,26 @@ RunProgram(Name, path, visible=true)
 run_and_hide(Name, path, className)
 {
 	global WM_COMMAND
-	ifwinexist, %className%
-	{
-		IfWinNotActive, %className%
-		{	
-			winactivate, %className%
-			return
-		}
-	}
+
 	process, exist, %Name%
 	hWnd := errorlevel
 	
 	if (hWnd != 0)
 	{
 		IfWinExist %className%
-			winhide, %className%
+			IfWinNotActive, %className%
+			{	
+				winactivate, %className%
+				return
+			}
+			else
+				winhide, %className%
 		else 
 		{
 			if(className="ahk_class EVERYTHING")
 			{
 				detecthiddenwindows, on
-				sendmessage, WM_COMMAND, 0x00009C41,0x00000000, , ahk_class EVERYTHING_TASKBAR_NOTIFICATION
+				sendmessage, WM_COMMAND, 0x00009C41,0x00000000, , ahk_class EVERYTHING_TASKBAR_NOTIFICATION  ;激活everying
 				detecthiddenwindows, off
 			}
 			else
@@ -1276,14 +1327,14 @@ open_helpfile(language)
 		ifwinexist, AutoHotkey 中文帮助
 			winactivate, AutoHotkey 中文帮助
 		else
-			run, C:\Users\lcq\Desktop\HelpFiles\AutoHotkey.chm
+			run, C:\Users\lcq\Desktop\AHK_Script\HelpFiles\AutoHotkey.chm
 	}
 	if(language="py")
 	{
 		ifwinexist, Python v2.7.4 documentation
 			winactivate, Python v2.7.4 documentation
 		else
-			run, C:\Users\lcq\Desktop\HelpFiles\python274.chm
+			run, C:\Users\lcq\Desktop\AHK_Script\HelpFiles\python274.chm
 	}
 	return
 }
@@ -1297,7 +1348,7 @@ run_totalcmd()
 	dm := ComObjCreate("dm.dmsoft")
 	
 	RegWinHwnd := dm.FindWindow("TNASTYNAGSCREEN","Total Commander")
-	dm_ret := dm.SetDict(0,"C:\Users\lcq\Desktop\resource\dm_soft.txt")
+	dm_ret := dm.SetDict(0,"C:\Users\lcq\Desktop\AHK_Script\resource\dm_soft.txt")
 	dm.BindWindow(RegWinHwnd,"gdi","normal","normal",0)
 	s := dm.Ocr(229,198,245,215,"000000-c0c0c0",1.0)
 	
@@ -1674,30 +1725,37 @@ CaptureGUI()
 			;traytip,, %pxpos% %nxpos% %xpos% %pypos% %nypos% %ypos%
 			;Getfont(%pxpos%,%pypos%,%xpos%,%ypos%)
 			MouseGetPos, endX, endY
-			width = % endX - startX
-			height = % endY - startY
+			width :=  Abs(endX - startX )+ 1
+			height :=  Abs(endY - startY )+ 1
 			Gui, captureRect:    +LastFound +AlwaysOnTop
 			Gui, captureRect:    Color, EEAA99
 			WinSet, Transparent, 150
 			Gui, captureRect:    Font, s10 
 			Gui, captureRect:    Add, Text, Cblue, >>>>截取屏幕
-			Gui, captureRect:    -Caption 
-			Gui, captureRect:    Show, x%startX% y%startY% h%height% w%width%
+			Gui, captureRect:    -Caption
+			if(endx > startX)
+				Gui, captureRect:    Show, x%startX% y%startY% h%height% w%width%
+			else
+				Gui, captureRect:    Show, x%endX% y%startY% h%height% w%width%
 			sleep, 100
 			OnMessage(0x201, "WM_LBUTTONDOWN")   
 			return
 		}
 		MouseGetPos, xpos, ypos
-		nxpos = % xpos - startX + 1
-		nypos = % ypos - startY + 1
+		nxpos := abs(xpos - startX ) + 1
+		nypos := abs (ypos - startY )  + 1
 		ControlSetText, Static1, %nxpos%×%nypos%, ahk_id %RectHwnd%
 		Gui, captureRect:    Font, s10
 		Gui, captureRect:    Add, Text, Cblue, >>>>截取屏幕
 		Gui, captureRect:    Font, s20
-		Gui, captureRect:    Show, x%startX% y%startY% h%nypos% w%nxpos% 
+		if(xpos > startX)
+				Gui, captureRect:    Show, x%startX% y%startY% h%nypos% w%nxpos%
+			else
+				Gui, captureRect:    Show, x%xpos% y%startY% h%nypos% w%nxpos%
 		OnMessage(0x201, "WM_LBUTTONDOWN")
           
 	}
+
 	DetectHiddenWindows On  ; 才可以检测到脚本的隐藏主窗口.
 	SetTitleMatchMode 2  ; 避免为下面的文件指定完整的路径.
 	WinClose Magnifier.ahk - AutoHotkey 
@@ -1765,6 +1823,11 @@ CaptureImage(clip=0)
 
 CaptureClient(i)
 {
+	if A_OSVersion != WIN_7
+	{
+		send !PrintScreen
+		return
+	}
 	picNum:=0
 	path := A_ScriptDir . "\" . picNum . ".png"
 	while(FileExist(path))
@@ -1845,7 +1908,7 @@ login_seu_wlan()
 		FileCreateDir, D:\Program Files\seu_dial
 	
 	IfNotExist, D:\Program Files\seu_dial\seu-wlan.xml
-		fileinstall, C:\Users\lcq\Desktop\resource\seu-wlan.xml, D:\Program Files\seu_dial\seu-wlan.xml, 1
+		fileinstall, C:\Users\lcq\Desktop\AHK_Script\resource\seu-wlan.xml, D:\Program Files\seu_dial\seu-wlan.xml, 1
 	
 	Connect_seu_wlan()
 	sleep, 1000
